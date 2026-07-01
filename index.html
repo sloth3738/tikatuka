@@ -385,6 +385,65 @@
       color: var(--ink);
     }
 
+
+    .mid-dice-panel {
+      display: none;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+      padding: 12px 14px;
+      border-radius: 22px;
+      background: rgba(255, 250, 240, 0.94);
+      border: 2px solid rgba(185, 134, 69, 0.28);
+      box-shadow: var(--shadow);
+      position: sticky;
+      top: 8px;
+      z-index: 15;
+      backdrop-filter: blur(8px);
+    }
+
+    .mid-turn,
+    .mid-info {
+      min-width: 74px;
+      display: grid;
+      gap: 2px;
+      line-height: 1.15;
+    }
+
+    .mid-info {
+      text-align: right;
+    }
+
+    .mid-label {
+      font-size: 11px;
+      color: var(--muted);
+      font-weight: 700;
+    }
+
+    .mid-current-dice {
+      width: 58px;
+      height: 58px;
+      border-radius: 16px;
+      background: #fff;
+      border: 3px solid var(--accent);
+      display: grid;
+      place-items: center;
+      font-size: 30px;
+      font-weight: 900;
+      box-shadow: inset 0 -5px 0 rgba(0,0,0,.07);
+      flex: 0 0 auto;
+    }
+
+    .mid-current-dice.shield {
+      border-color: var(--blue);
+      background: #eef6ff;
+      color: #244e7c;
+      box-shadow:
+        inset 0 -5px 0 rgba(0,0,0,.07),
+        0 0 0 5px rgba(79, 119, 168, 0.18),
+        0 0 18px rgba(79, 119, 168, 0.28);
+    }
+
     .footer {
       margin: 16px 0 4px;
       color: var(--muted);
@@ -501,6 +560,14 @@
 
       .mobile-hint {
         display: block;
+      }
+
+      .mid-dice-panel {
+        display: flex;
+      }
+
+      .turn-card {
+        display: none;
       }
 
       .top-ui {
@@ -699,8 +766,8 @@
   <div class="app">
     <header>
       <h1>티카투카 AI 대전</h1>
-      <p class="subtitle">AI와 1:1로 대전합니다./p>
-      <div class="mobile-hint">웹앱용</div>
+      <p class="subtitle">AI와 1:1로 대전합니다. 휴대폰 세로 화면에서 바로 플레이하기 좋게 최적화했어요.</p>
+      <div class="mobile-hint">링크로 접속하면 바로 실행되는 웹앱용 index.html 버전입니다.</div>
     </header>
 
     <section class="top-ui">
@@ -753,6 +820,18 @@
         <div id="aiLines" class="lines"></div>
       </section>
 
+      <section id="midDicePanel" class="mid-dice-panel" aria-live="polite">
+        <div class="mid-turn">
+          <span class="mid-label">현재 턴</span>
+          <strong id="midTurnText">-</strong>
+        </div>
+        <div id="midCurrentDice" class="mid-current-dice">?</div>
+        <div class="mid-info">
+          <span class="mid-label">주사위</span>
+          <strong id="midDiceInfo">-</strong>
+        </div>
+      </section>
+
       <section class="side player">
         <div class="side-title">
           <h2>플레이어 진영</h2>
@@ -802,6 +881,9 @@
       aiLines: document.getElementById("aiLines"),
       playerLines: document.getElementById("playerLines"),
       aiCount: document.getElementById("aiCount"),
+      midTurnText: document.getElementById("midTurnText"),
+      midCurrentDice: document.getElementById("midCurrentDice"),
+      midDiceInfo: document.getElementById("midDiceInfo"),
       playerCount: document.getElementById("playerCount"),
       rerollBtn: document.getElementById("rerollBtn"),
       holdBtn: document.getElementById("holdBtn"),
@@ -1561,11 +1643,25 @@
         els.currentDice.textContent = state.currentDice.value;
         els.currentDice.className = `current-dice ${state.currentDice.isShield ? "shield" : ""}`;
         els.diceInfo.textContent = state.currentDice.isShield ? "실드 주사위" : "일반 주사위";
+
+        els.midCurrentDice.textContent = state.currentDice.value;
+        els.midCurrentDice.className = `mid-current-dice ${state.currentDice.isShield ? "shield" : ""}`;
+        els.midDiceInfo.textContent = state.currentDice.isShield ? "실드" : "일반";
       } else {
         els.currentDice.textContent = "-";
         els.currentDice.className = "current-dice";
         els.diceInfo.textContent = "주사위 없음";
+
+        els.midCurrentDice.textContent = "-";
+        els.midCurrentDice.className = "mid-current-dice";
+        els.midDiceInfo.textContent = "없음";
       }
+
+      els.midTurnText.textContent = state.gameOver
+        ? "게임 종료"
+        : state.currentTurn === OWNERS.PLAYER
+          ? "플레이어"
+          : "AI";
 
       els.rerollCountText.textContent = state.rerollCounts.Player;
       els.rerollBtn.disabled =
