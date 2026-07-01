@@ -9,7 +9,7 @@
   <meta name="apple-mobile-web-app-title" content="티카투카" />
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
   <link rel="manifest" href="data:application/manifest+json,%7B%22name%22%3A%22%ED%8B%B0%EC%B9%B4%ED%88%AC%EC%B9%B4%20AI%20%EB%8C%80%EC%A0%84%22%2C%22short_name%22%3A%22%ED%8B%B0%EC%B9%B4%ED%88%AC%EC%B9%B4%22%2C%22start_url%22%3A%22.%22%2C%22display%22%3A%22standalone%22%2C%22background_color%22%3A%22%23f6f1e8%22%2C%22theme_color%22%3A%22%23b98645%22%7D" />
-  <title>티카투카 AI 대전</title>
+  <title>티카투카 AI 대전 v4</title>
   <style>
     :root {
       --bg: #f6f1e8;
@@ -387,19 +387,35 @@
 
 
     .mid-dice-panel {
-      display: none;
+      display: flex;
       align-items: center;
       justify-content: space-between;
-      gap: 12px;
+      gap: 10px;
       padding: 12px 14px;
       border-radius: 22px;
       background: rgba(255, 250, 240, 0.94);
-      border: 2px solid rgba(185, 134, 69, 0.28);
+      border: 3px solid rgba(185, 134, 69, 0.48);
       box-shadow: var(--shadow);
       position: sticky;
       top: 8px;
       z-index: 15;
       backdrop-filter: blur(8px);
+      margin: 4px 0;
+    }
+
+    .mid-panel-title {
+      position: absolute;
+      top: -12px;
+      left: 50%;
+      transform: translateX(-50%);
+      padding: 4px 12px;
+      border-radius: 999px;
+      background: var(--accent);
+      color: #fff;
+      font-size: 12px;
+      font-weight: 900;
+      box-shadow: 0 6px 14px rgba(82, 53, 21, .16);
+      white-space: nowrap;
     }
 
     .mid-turn,
@@ -431,6 +447,17 @@
       font-size: 30px;
       font-weight: 900;
       box-shadow: inset 0 -5px 0 rgba(0,0,0,.07);
+      flex: 0 0 auto;
+    }
+
+
+    .mid-reroll-btn {
+      min-height: 42px;
+      padding: 9px 12px;
+      border-radius: 14px;
+      background: var(--accent-dark);
+      font-size: 13px;
+      white-space: nowrap;
       flex: 0 0 auto;
     }
 
@@ -562,12 +589,34 @@
         display: block;
       }
 
+
       .mid-dice-panel {
-        display: flex;
+        display: grid;
+        grid-template-columns: 1fr auto 1fr;
+        grid-template-areas:
+          "turn dice info"
+          "reroll reroll reroll";
+        row-gap: 8px;
       }
 
-      .turn-card {
-        display: none;
+      .mid-turn {
+        grid-area: turn;
+      }
+
+      .mid-current-dice {
+        grid-area: dice;
+        justify-self: center;
+      }
+
+      .mid-info {
+        grid-area: info;
+      }
+
+      .mid-reroll-btn {
+        grid-area: reroll;
+        width: 100%;
+        min-height: 44px;
+        font-size: 14px;
       }
 
       .top-ui {
@@ -766,8 +815,8 @@
   <div class="app">
     <header>
       <h1>티카투카 AI 대전</h1>
-      <p class="subtitle">AI와 1:1로 대전합니다. </p>
-      <div class="mobile-hint"> 웹앱용 </div>
+      <p class="subtitle"> 티카투카 웹앱용 </p>
+      <div class="mobile-hint"> 혼자잘노는편 </div>
     </header>
 
     <section class="top-ui">
@@ -784,7 +833,6 @@
       </div>
 
       <div class="card controls">
-        <button id="rerollBtn" class="btn-secondary">타짜 / 리롤 <span id="rerollCountText">1</span></button>
         <button id="holdBtn" class="btn-danger">홀드</button>
         <button id="rulesBtn" class="btn-blue">게임 설명</button>
         <button id="newGameBtn" class="btn-blue">새 게임</button>
@@ -821,6 +869,7 @@
       </section>
 
       <section id="midDicePanel" class="mid-dice-panel" aria-live="polite">
+        <div class="mid-panel-title">현재 주사위</div>
         <div class="mid-turn">
           <span class="mid-label">현재 턴</span>
           <strong id="midTurnText">-</strong>
@@ -830,6 +879,7 @@
           <span class="mid-label">주사위</span>
           <strong id="midDiceInfo">-</strong>
         </div>
+        <button id="midRerollBtn" class="mid-reroll-btn">타짜 <span id="rerollCountText">1</span></button>
       </section>
 
       <section class="side player">
@@ -885,7 +935,7 @@
       midCurrentDice: document.getElementById("midCurrentDice"),
       midDiceInfo: document.getElementById("midDiceInfo"),
       playerCount: document.getElementById("playerCount"),
-      rerollBtn: document.getElementById("rerollBtn"),
+      rerollBtn: document.getElementById("midRerollBtn"),
       holdBtn: document.getElementById("holdBtn"),
       rerollCountText: document.getElementById("rerollCountText"),
       newGameBtn: document.getElementById("newGameBtn"),
