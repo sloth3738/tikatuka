@@ -9,7 +9,7 @@
   <meta name="apple-mobile-web-app-title" content="티카투카" />
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
   <link rel="manifest" href="data:application/manifest+json,%7B%22name%22%3A%22%ED%8B%B0%EC%B9%B4%ED%88%AC%EC%B9%B4%20AI%20%EB%8C%80%EC%A0%84%22%2C%22short_name%22%3A%22%ED%8B%B0%EC%B9%B4%ED%88%AC%EC%B9%B4%22%2C%22start_url%22%3A%22.%22%2C%22display%22%3A%22standalone%22%2C%22background_color%22%3A%22%23f6f1e8%22%2C%22theme_color%22%3A%22%23b98645%22%7D" />
-  <title>티카투카 AI 대전 v4</title>
+  <title>티카투카 AI 대전 v5</title>
   <style>
     :root {
       --bg: #f6f1e8;
@@ -64,7 +64,7 @@
 
     .top-ui {
       display: grid;
-      grid-template-columns: 1fr 1.1fr 1fr;
+      grid-template-columns: 1fr;
       gap: 14px;
       margin-bottom: 16px;
     }
@@ -386,6 +386,18 @@
     }
 
 
+
+    .board-message-panel {
+      margin: 0;
+      border: 2px solid rgba(185, 134, 69, 0.22);
+      background: rgba(255, 250, 240, 0.94);
+    }
+
+    .board-message-panel .message {
+      min-height: auto;
+      font-size: 14px;
+    }
+
     .mid-dice-panel {
       display: flex;
       align-items: center;
@@ -675,6 +687,18 @@
         gap: 10px;
       }
 
+
+      .board-message-panel {
+        padding: 10px 12px;
+        border-radius: 18px;
+      }
+
+      .board-message-panel .message {
+        font-size: 13px;
+        line-height: 1.45;
+      }
+
+
       .side {
         border-radius: 22px;
         padding: 10px;
@@ -814,7 +838,7 @@
 <body>
   <div class="app">
     <header>
-      <h1>티카투카 AI 대전</h1>
+      <h1>티카투카 AI 대전 v5</h1>
       <p class="subtitle"> 티카투카 웹앱용 </p>
       <div class="mobile-hint"> 혼자잘노는편 </div>
     </header>
@@ -827,10 +851,6 @@
         <div id="diceInfo" class="label">주사위 대기 중</div>
       </div>
 
-      <div class="card">
-        <div class="label">시스템 메시지</div>
-        <div id="message" class="message"></div>
-      </div>
 
       <div class="card controls">
         <button id="holdBtn" class="btn-danger">홀드</button>
@@ -880,6 +900,11 @@
           <strong id="midDiceInfo">-</strong>
         </div>
         <button id="midRerollBtn" class="mid-reroll-btn">타짜 <span id="rerollCountText">1</span></button>
+      </section>
+
+      <section id="boardMessagePanel" class="card board-message-panel">
+        <div class="label">시스템 메시지</div>
+        <div id="message" class="message"></div>
       </section>
 
       <section class="side player">
