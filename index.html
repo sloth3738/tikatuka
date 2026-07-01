@@ -9,7 +9,7 @@
   <meta name="apple-mobile-web-app-title" content="티카투카" />
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
   <link rel="manifest" href="data:application/manifest+json,%7B%22name%22%3A%22%ED%8B%B0%EC%B9%B4%ED%88%AC%EC%B9%B4%20AI%20%EB%8C%80%EC%A0%84%22%2C%22short_name%22%3A%22%ED%8B%B0%EC%B9%B4%ED%88%AC%EC%B9%B4%22%2C%22start_url%22%3A%22.%22%2C%22display%22%3A%22standalone%22%2C%22background_color%22%3A%22%23f6f1e8%22%2C%22theme_color%22%3A%22%23b98645%22%7D" />
-  <title>티카투카 AI 대전 v5</title>
+  <title>티카투카 AI 대전 v6</title>
   <style>
     :root {
       --bg: #f6f1e8;
@@ -838,7 +838,7 @@
 <body>
   <div class="app">
     <header>
-      <h1>티카투카 AI 대전 v5</h1>
+      <h1>티카투카 AI 대전 v6</h1>
       <p class="subtitle"> 티카투카 웹앱용 </p>
       <div class="mobile-hint"> 혼자잘노는편 </div>
     </header>
@@ -853,9 +853,9 @@
 
 
       <div class="card controls">
-        <button id="holdBtn" class="btn-danger">홀드</button>
-        <button id="rulesBtn" class="btn-blue">게임 설명</button>
-        <button id="newGameBtn" class="btn-blue">새 게임</button>
+        <button id="holdBtn" class="btn-danger" type="button">홀드</button>
+        <button id="rulesBtn" class="btn-blue" type="button" aria-controls="rulesPanel" aria-expanded="false">게임 설명</button>
+        <button id="newGameBtn" class="btn-blue" type="button">새 게임</button>
       </div>
       <div id="rulesPanel" class="rules-panel" hidden>
         <h3>게임 설명</h3>
@@ -875,7 +875,7 @@
       <div id="recordSummary" class="record-summary"></div>
       <div id="historyList" class="history-list"></div>
       <div class="controls" style="margin-top: 10px;">
-        <button id="clearHistoryBtn" class="btn-danger">기록 초기화</button>
+        <button id="clearHistoryBtn" class="btn-danger" type="button">기록 초기화</button>
       </div>
     </section>
 
@@ -899,7 +899,7 @@
           <span class="mid-label">주사위</span>
           <strong id="midDiceInfo">-</strong>
         </div>
-        <button id="midRerollBtn" class="mid-reroll-btn">타짜 <span id="rerollCountText">1</span></button>
+        <button id="midRerollBtn" class="mid-reroll-btn" type="button">타짜 <span id="rerollCountText">1</span></button>
       </section>
 
       <section id="boardMessagePanel" class="card board-message-panel">
@@ -1016,42 +1016,23 @@
       const history = loadHistory();
       history.unshift(record);
       saveHistory(history);
-  
-    document.addEventListener("touchend", function(event) {
-      const button = event.target.closest("button");
-      if (button) {
-        event.preventDefault();
-        button.click();
-      }
-    }, { passive: false });
-
-    renderHistory();
+      renderHistory();
     }
 
     function clearMatchHistory() {
       localStorage.removeItem(HISTORY_KEY);
-  
-    document.addEventListener("touchend", function(event) {
-      const button = event.target.closest("button");
-      if (button) {
-        event.preventDefault();
-        button.click();
-      }
-    }, { passive: false });
-
-    renderHistory();
+      renderHistory();
       setMessage("최근 대전 기록을 초기화했습니다.");
     }
 
     function toggleRules() {
-      const isHidden = els.rulesPanel.hasAttribute("hidden");
-      if (isHidden) {
-        els.rulesPanel.removeAttribute("hidden");
-        els.rulesBtn.textContent = "설명 닫기";
-      } else {
-        els.rulesPanel.setAttribute("hidden", "");
-        els.rulesBtn.textContent = "게임 설명";
-      }
+      if (!els.rulesPanel || !els.rulesBtn) return;
+
+      const willOpen = els.rulesPanel.hidden;
+
+      els.rulesPanel.hidden = !willOpen;
+      els.rulesBtn.textContent = willOpen ? "설명 닫기" : "게임 설명";
+      els.rulesBtn.setAttribute("aria-expanded", String(willOpen));
     }
 
     function renderHistory() {
@@ -1784,15 +1765,6 @@
     els.newGameBtn.addEventListener("click", resetGame);
     els.clearHistoryBtn.addEventListener("click", clearMatchHistory);
     els.rulesBtn.addEventListener("click", toggleRules);
-
-
-    document.addEventListener("touchend", function(event) {
-      const button = event.target.closest("button");
-      if (button) {
-        event.preventDefault();
-        button.click();
-      }
-    }, { passive: false });
 
     renderHistory();
     resetGame();
