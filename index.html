@@ -838,7 +838,7 @@
 <body>
   <div class="app">
     <header>
-      <h1>티카투카 AI 대전 v6</h1>
+      <h1>티카투카 보드게임</h1>
       <p class="subtitle"> 티카투카 웹앱용 </p>
       <div class="mobile-hint"> 혼자잘노는편 </div>
     </header>
@@ -1070,7 +1070,7 @@
         const meta = document.createElement("div");
         meta.innerHTML = `
           <strong>${index + 1}. ${item.firstPlayer === "Player" ? "플레이어" : "AI"} 선공</strong>
-          <div class="history-meta">${item.date} · 라인 ${item.playerWins}:${item.aiWins}</div>
+          <div class="history-meta">${item.date} · 라인 ${item.playerWins}:${item.aiWins}${item.note ? " · " + item.note : ""}</div>
         `;
 
         const score = document.createElement("div");
@@ -1325,6 +1325,34 @@
       state.isBonusAction = false;
       setMessage("홀드! 현재 주사위를 버리고 턴을 넘겼습니다.");
       endTurn();
+    }
+
+
+    function hasGameStarted() {
+      return totalDice(OWNERS.PLAYER) > 0 ||
+        totalDice(OWNERS.AI) > 0 ||
+        !!state.currentDice;
+    }
+
+    function recordForfeitLoss() {
+      const playerTotal = state.boards.Player.reduce((sum, line) => sum + lineScore(line), 0);
+      const aiTotal = state.boards.AI.reduce((sum, line) => sum + lineScore(line), 0);
+
+      addMatchHistory({
+        result: "lose",
+        playerWins: 0,
+        aiWins: 3,
+        playerTotal,
+        aiTotal,
+        firstPlayer: state.firstPlayer,
+        date: new Date().toLocaleString("ko-KR", {
+          month: "2-digit",
+          day: "2-digit",
+          hour: "2-digit",
+          minute: "2-digit"
+        }),
+        note: "새 게임"
+      });
     }
 
     function checkGameOver() {
@@ -1740,7 +1768,17 @@
       renderLines(OWNERS.PLAYER, els.playerLines);
     }
 
-    function resetGame() {
+    function resetGame(options = {}) {
+      const shouldRecordForfeit =
+        options.recordForfeit === true &&
+        !state.gameOver &&
+        hasGameStarted();
+
+      if (shouldRecordForfeit) {
+        recordForfeitLoss();
+        setMessage("새 게임을 시작하여 현재 판은 플레이어 패배로 기록되었습니다.");
+      }
+
       state.boards = {
         Player: [[], [], []],
         AI: [[], [], []]
@@ -1762,7 +1800,7 @@
 
     els.rerollBtn.addEventListener("click", reroll);
     els.holdBtn.addEventListener("click", hold);
-    els.newGameBtn.addEventListener("click", resetGame);
+    els.newGameBtn.addEventListener("click", () => resetGame({ recordForfeit: true }));
     els.clearHistoryBtn.addEventListener("click", clearMatchHistory);
     els.rulesBtn.addEventListener("click", toggleRules);
 
