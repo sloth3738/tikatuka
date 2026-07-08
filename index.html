@@ -543,6 +543,7 @@
           <p><strong>선공 실드:</strong> 선공자는 첫 주사위를 실드 주사위로 받으며, 자기 진영에만 배치할 수 있습니다.</p>
           <p><strong>알까기:</strong> 같은 라인의 상대 일반 주사위 중 같은 숫자를 모두 제거합니다. 이때 놓으려던 주사위도 사라지고 보너스 실드 주사위를 얻습니다.</p>
           <p><strong>실드 주사위:</strong> 알까기 대상이 되지 않습니다. 보너스 실드는 자기/상대 빈칸에 배치할 수 있습니다.</p>
+          <p><strong>타짜:</strong> 각자 1회 사용할 수 있으며, 사용하면 반드시 현재 주사위보다 큰 숫자가 나옵니다. 단, 현재 주사위가 6이면 사용할 수 없습니다.</p>
           <p><strong>점수:</strong> 같은 숫자 1개는 ×1, 2개는 ×3, 3개는 ×5입니다.</p>
           <p><strong>주의:</strong> 홀드는 사용할 수 없으며, 나온 주사위는 반드시 배치해야 합니다.</p>
           <p><strong>새 게임:</strong> 게임 진행 중 새 게임을 누르면 플레이어 패배로 기록됩니다.</p>
@@ -564,7 +565,8 @@
     const OWNERS = { PLAYER: "PLAYER", AI: "AI" };
     const HISTORY_KEY = "tikatukaAIHistory_recentUI_v1";
     const MAX_HISTORY = 10;
-    const AI_DELAY = 720;
+    const AI_DELAY = 1300;
+    const AI_AFTER_ACTION_DELAY = 900;
 
     const state = {
       boards: {
@@ -624,8 +626,13 @@
       };
     }
 
-    function rollDifferentDice(previousValue, isShield = false) {
-      const candidates = [1, 2, 3, 4, 5, 6].filter(value => value !== previousValue);
+    function rollHigherDice(previousValue, isShield = false) {
+      const candidates = [1, 2, 3, 4, 5, 6].filter(value => value > previousValue);
+
+      if (candidates.length === 0) {
+        return null;
+      }
+
       return {
         value: candidates[Math.floor(Math.random() * candidates.length)],
         isShield
@@ -914,11 +921,19 @@
 
       const oldValue = state.currentDice.value;
       const keepShield = state.currentDice.isShield;
+      const rerolledDice = rollHigherDice(oldValue, keepShield);
+
+      if (!rerolledDice) {
+        setMessage("현재 주사위가 6이라서 타짜를 사용할 수 없습니다.");
+        render();
+        return;
+      }
+
       state.rerollCounts[owner] -= 1;
-      state.currentDice = rollDifferentDice(oldValue, keepShield);
+      state.currentDice = rerolledDice;
 
       const shieldText = keepShield ? " 선공 실드 주사위이므로 리롤 후에도 실드 속성이 유지됩니다." : "";
-      setMessage(`플레이어 타짜 발동! ${oldValue}을(를) 제외하고 다시 굴려 ${state.currentDice.value}이(가) 나왔습니다.${shieldText}`);
+      setMessage(`플레이어 타짜 발동! ${oldValue}보다 큰 수인 ${state.currentDice.value}이(가) 나왔습니다.${shieldText}`);
       render();
     }
 
@@ -1093,6 +1108,8 @@
       if (state.isBonusAction) return false;
 
       const dice = state.currentDice.value;
+      if (dice >= 6) return false;
+
       const canHit = state.boards.PLAYER.some(line =>
         line.some(die => !die.isShield && die.value === dice)
       );
@@ -1121,14 +1138,21 @@
 
       const oldValue = state.currentDice.value;
       const keepShield = state.currentDice.isShield;
+      const rerolledDice = rollHigherDice(oldValue, keepShield);
+
+      if (!rerolledDice) {
+        next();
+        return;
+      }
+
       state.rerollCounts.AI -= 1;
-      state.currentDice = rollDifferentDice(oldValue, keepShield);
+      state.currentDice = rerolledDice;
 
       const shieldText = keepShield ? " 선공 실드 주사위라 실드 속성은 유지됩니다." : "";
-      setMessage(`AI가 타짜를 사용했습니다. ${oldValue}을(를) 제외하고 다시 굴려 ${state.currentDice.value}이(가) 나왔습니다.${shieldText}`);
+      setMessage(`AI가 타짜를 사용했습니다. ${oldValue}보다 큰 수인 ${state.currentDice.value}이(가) 나왔습니다.${shieldText}`);
       render();
 
-      setTimeout(next, AI_DELAY);
+      setTimeout(next, AI_DELAY + AI_AFTER_ACTION_DELAY);
     }
 
     function aiPlace(targetOwner, lineIndex) {
@@ -1143,7 +1167,7 @@
         state.boards.AI[lineIndex].push({ ...state.currentDice });
         setMessage(`AI가 선공 실드 주사위를 자기 ${lineIndex + 1}라인에 배치했습니다.`);
         state.currentDice = null;
-        endTurn();
+        setTimeout(endTurn, AI_AFTER_ACTION_DELAY);
         return;
       }
 
@@ -1153,7 +1177,7 @@
         setMessage(`AI가 보너스 실드 주사위를 ${targetText} ${lineIndex + 1}라인에 배치했습니다.`);
         state.currentDice = null;
         state.isBonusAction = false;
-        endTurn();
+        setTimeout(endTurn, AI_AFTER_ACTION_DELAY);
         return;
       }
 
@@ -1180,13 +1204,14 @@
       state.boards.AI[lineIndex].push({ ...state.currentDice });
       setMessage(`AI가 자기 ${lineIndex + 1}라인에 ${diceValue} 주사위를 배치했습니다.`);
       state.currentDice = null;
-      endTurn();
+      setTimeout(endTurn, AI_AFTER_ACTION_DELAY);
     }
 
     function scheduleAI() {
       if (state.gameOver || state.currentTurn !== OWNERS.AI) return;
 
       state.aiThinking = true;
+      setMessage(`AI가 주사위 ${state.currentDice?.value ?? "-"}을(를) 보고 배치할 라인을 고민 중입니다.`);
       render();
 
       setTimeout(() => {
@@ -1321,7 +1346,14 @@
       }
 
       els.rerollCount.textContent = state.rerollCounts.PLAYER;
-      els.rerollBtn.disabled = state.gameOver || state.currentTurn !== OWNERS.PLAYER || state.aiThinking || state.isBonusAction || state.rerollCounts.PLAYER <= 0;
+      els.rerollBtn.disabled =
+        state.gameOver ||
+        state.currentTurn !== OWNERS.PLAYER ||
+        state.aiThinking ||
+        state.isBonusAction ||
+        state.rerollCounts.PLAYER <= 0 ||
+        !state.currentDice ||
+        state.currentDice.value >= 6;
 
       els.aiLines.innerHTML = "";
       els.playerLines.innerHTML = "";
