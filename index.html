@@ -4,16 +4,12 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover, user-scalable=no" />
   <meta name="theme-color" content="#b98645" />
-  <meta name="mobile-web-app-capable" content="yes" />
-  <meta name="apple-mobile-web-app-capable" content="yes" />
-  <meta name="apple-mobile-web-app-title" content="티카투카" />
-  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
-  <link rel="manifest" href="data:application/manifest+json,%7B%22name%22%3A%22%ED%8B%B0%EC%B9%B4%ED%88%AC%EC%B9%B4%20AI%20%EB%8C%80%EC%A0%84%22%2C%22short_name%22%3A%22%ED%8B%B0%EC%B9%B4%ED%88%AC%EC%B9%B4%22%2C%22start_url%22%3A%22.%22%2C%22display%22%3A%22standalone%22%2C%22background_color%22%3A%22%23f6f1e8%22%2C%22theme_color%22%3A%22%23b98645%22%7D" />
   <title>티카투카 보드게임</title>
   <style>
     :root {
       --bg: #f6f1e8;
       --panel: #fffaf0;
+      --panel-strong: #fff7e9;
       --ink: #2d251c;
       --muted: #7c6b5a;
       --accent: #b98645;
@@ -22,248 +18,205 @@
       --blue: #4f77a8;
       --green: #5d8a66;
       --slot: #eee0c8;
-      --shadow: 0 12px 28px rgba(68, 48, 24, 0.14);
+      --line: #ded5c9;
+      --shadow: 0 10px 24px rgba(68, 48, 24, 0.13);
     }
 
-    * {
-      box-sizing: border-box;
-    }
+    * { box-sizing: border-box; }
 
     body {
       margin: 0;
-      font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
-      background:
-        radial-gradient(circle at top left, rgba(255,255,255,.9), transparent 35%),
-        linear-gradient(135deg, #f8f2e7, #eadcc7);
-      color: var(--ink);
       min-height: 100vh;
-      padding: 20px;
+      padding: 12px;
+      padding-bottom: calc(18px + env(safe-area-inset-bottom));
+      font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      background: linear-gradient(135deg, #f8f2e7, #eadcc7);
+      color: var(--ink);
+      -webkit-tap-highlight-color: transparent;
+      touch-action: manipulation;
     }
 
     .app {
-      max-width: 980px;
+      width: min(980px, 100%);
       margin: 0 auto;
     }
 
     header {
       text-align: center;
-      margin-bottom: 18px;
+      margin: 6px 0 12px;
     }
 
     h1 {
-      margin: 6px 0;
-      font-size: clamp(28px, 5vw, 44px);
-      letter-spacing: -0.04em;
+      margin: 0;
+      font-size: clamp(28px, 8vw, 42px);
+      letter-spacing: -0.05em;
+      line-height: 1.1;
     }
 
     .subtitle {
+      margin: 4px 0 0;
       color: var(--muted);
-      margin: 0;
-      font-size: 15px;
+      font-size: 13px;
     }
 
-    .top-ui {
+    .mobile-hint {
+      display: inline-block;
+      margin-top: 5px;
+      padding: 5px 10px;
+      border-radius: 999px;
+      background: rgba(255, 250, 240, 0.85);
+      border: 1px solid rgba(126, 93, 51, 0.16);
+      color: var(--accent-dark);
+      font-size: 12px;
+      font-weight: 800;
+    }
+
+    .status {
       display: grid;
-      grid-template-columns: 1fr;
-      gap: 14px;
-      margin-bottom: 16px;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 8px;
+      margin-bottom: 10px;
     }
 
     .card {
-      background: rgba(255, 250, 240, 0.88);
-      border: 1px solid rgba(126, 93, 51, 0.18);
-      border-radius: 22px;
+      background: rgba(255, 250, 240, 0.92);
+      border: 1px solid rgba(126, 93, 51, 0.16);
+      border-radius: 20px;
       box-shadow: var(--shadow);
-      padding: 16px;
+      padding: 12px;
       backdrop-filter: blur(8px);
     }
 
-    .turn-card {
-      text-align: center;
-    }
-
     .label {
-      font-size: 13px;
       color: var(--muted);
-      margin-bottom: 8px;
-    }
-
-    .current-dice {
-      width: 76px;
-      height: 76px;
-      margin: 8px auto;
-      border-radius: 18px;
-      background: #fff;
-      border: 3px solid var(--accent);
-      display: grid;
-      place-items: center;
-      font-size: 38px;
+      font-size: 12px;
       font-weight: 800;
-      box-shadow: inset 0 -5px 0 rgba(0,0,0,.07);
+      margin-bottom: 4px;
     }
 
-    .current-dice.shield {
-      border-color: var(--blue);
-      background: #eef6ff;
-      color: #244e7c;
-      box-shadow:
-        inset 0 -5px 0 rgba(0,0,0,.07),
-        0 0 0 5px rgba(79, 119, 168, 0.18),
-        0 0 18px rgba(79, 119, 168, 0.28);
-    }
-
-    .status-line {
-      font-weight: 700;
-      min-height: 24px;
-    }
-
-    .controls {
-      display: flex;
-      flex-wrap: wrap;
-      gap: 8px;
-      justify-content: center;
-      align-content: center;
-    }
-
-    button {
-      border: 0;
-      border-radius: 999px;
-      padding: 10px 14px;
-      font-weight: 800;
-      color: #fff;
-      background: var(--accent);
-      cursor: pointer;
-      box-shadow: 0 6px 14px rgba(82, 53, 21, .16);
-      transition: transform .12s ease, opacity .12s ease, filter .12s ease;
-      touch-action: manipulation;
-    }
-
-    button:hover:not(:disabled) {
-      transform: translateY(-1px);
-      filter: brightness(1.04);
-    }
-
-    button:disabled {
-      opacity: .42;
-      cursor: not-allowed;
-      box-shadow: none;
-    }
-
-    .btn-secondary {
-      background: var(--accent-dark);
-    }
-
-    .btn-danger {
-      background: var(--danger);
-    }
-
-    .btn-blue {
-      background: var(--blue);
-    }
-
-    .message {
-      line-height: 1.5;
-      font-size: 14px;
-      min-height: 64px;
-      color: var(--ink);
+    .big {
+      font-size: 17px;
+      font-weight: 900;
+      line-height: 1.2;
     }
 
     .board {
       display: grid;
-      gap: 18px;
+      gap: 10px;
     }
 
     .side {
-      background: rgba(255, 250, 240, 0.72);
+      border-radius: 22px;
+      padding: 10px;
+      background: rgba(255, 250, 240, 0.82);
       border: 1px solid rgba(126, 93, 51, 0.16);
-      border-radius: 28px;
-      padding: 16px;
       box-shadow: var(--shadow);
+      position: relative;
+      transition: 0.16s ease;
+    }
+
+    .side.active {
+      border: 3px solid var(--accent);
+      box-shadow:
+        var(--shadow),
+        0 0 0 5px rgba(185, 134, 69, 0.16);
+      transform: translateY(-1px);
+    }
+
+    .side.active::before {
+      content: "현재 턴";
+      position: absolute;
+      top: -10px;
+      right: 16px;
+      padding: 4px 10px;
+      border-radius: 999px;
+      background: var(--accent);
+      color: #fff;
+      font-size: 11px;
+      font-weight: 900;
     }
 
     .side-title {
       display: flex;
       justify-content: space-between;
       align-items: baseline;
-      margin-bottom: 12px;
-      gap: 12px;
+      margin-bottom: 8px;
     }
 
     .side-title h2 {
       margin: 0;
-      font-size: 21px;
+      font-size: 18px;
+      letter-spacing: -0.03em;
     }
 
-    .line-count {
+    .count {
       color: var(--muted);
-      font-size: 13px;
-      white-space: nowrap;
+      font-size: 12px;
+      font-weight: 800;
     }
 
     .lines {
       display: grid;
-      grid-template-columns: repeat(3, 1fr);
-      gap: 12px;
+      gap: 8px;
     }
 
     .line {
+      display: grid;
+      grid-template-columns: 74px 1fr 82px;
+      align-items: center;
+      gap: 8px;
+      padding: 8px;
+      border-radius: 16px;
       background: var(--panel);
-      border: 1px solid rgba(126, 93, 51, 0.16);
-      border-radius: 20px;
-      padding: 12px;
+      border: 1px solid rgba(126, 93, 51, 0.14);
     }
 
-    .line-head {
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      margin-bottom: 10px;
-      gap: 6px;
+    .line-head strong {
+      display: block;
+      font-size: 12px;
+      color: var(--muted);
     }
 
     .score {
       font-size: 22px;
       font-weight: 900;
+      line-height: 1;
     }
 
-    .score.win {
-      color: var(--green);
-    }
-
-    .score.lose {
-      color: var(--danger);
-    }
+    .score.win { color: var(--green); }
+    .score.lose { color: var(--danger); }
 
     .slots {
       display: grid;
-      grid-template-columns: repeat(3, minmax(42px, 1fr));
-      gap: 8px;
-      margin-bottom: 10px;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 6px;
     }
 
     .slot {
+      min-height: 42px;
       aspect-ratio: 1;
-      border-radius: 14px;
+      border-radius: 12px;
       background: var(--slot);
       display: grid;
       place-items: center;
-      color: rgba(45, 37, 28, .28);
-      font-weight: 800;
-      border: 1px dashed rgba(45, 37, 28, .16);
+      border: 1px dashed rgba(45, 37, 28, .15);
+      color: rgba(45,37,28,.3);
+      font-weight: 900;
+      overflow: hidden;
     }
 
     .die {
       width: 100%;
       height: 100%;
-      border-radius: 14px;
-      background: #fff;
-      border: 2px solid var(--accent);
+      border-radius: 12px;
       display: grid;
       place-items: center;
-      font-size: clamp(20px, 4vw, 30px);
+      background: #fff;
+      border: 2px solid var(--accent);
+      font-size: 23px;
       font-weight: 900;
       position: relative;
-      box-shadow: inset 0 -5px 0 rgba(0,0,0,.06);
+      box-shadow: inset 0 -4px 0 rgba(0,0,0,.06);
     }
 
     .die.shield {
@@ -271,151 +224,76 @@
       background: #eef6ff;
       color: #244e7c;
       box-shadow:
-        inset 0 -5px 0 rgba(0,0,0,.06),
-        0 0 0 4px rgba(79, 119, 168, 0.18),
-        0 0 14px rgba(79, 119, 168, 0.28);
+        inset 0 -4px 0 rgba(0,0,0,.06),
+        0 0 0 3px rgba(79, 119, 168, 0.16);
     }
 
     .die.shield::after {
       content: "🛡";
       position: absolute;
-      right: 4px;
-      bottom: 1px;
-      font-size: 13px;
+      right: 3px;
+      bottom: 0;
+      font-size: 11px;
+    }
+
+    button {
+      border: 0;
+      border-radius: 999px;
+      min-height: 42px;
+      padding: 9px 10px;
+      background: var(--accent);
+      color: #fff;
+      font-weight: 900;
+      cursor: pointer;
+      touch-action: manipulation;
+      box-shadow: 0 5px 12px rgba(74, 48, 21, 0.14);
+    }
+
+    button:active:not(:disabled) {
+      transform: translateY(1px);
+    }
+
+    button:disabled {
+      opacity: .38;
+      cursor: not-allowed;
+      box-shadow: none;
+    }
+
+    .btn-danger { background: var(--danger); }
+    .btn-blue { background: var(--blue); }
+    .btn-dark { background: var(--accent-dark); }
+    .btn-outline {
+      background: rgba(255,255,255,.78);
+      color: var(--accent-dark);
+      border: 1px solid rgba(185, 134, 69, .35);
+      box-shadow: none;
     }
 
     .place-btn {
-      width: 100%;
-      padding: 9px 10px;
-      font-size: 13px;
-    }
-
-    .ai .place-btn:not(.bonus-target) {
-      display: none;
-    }
-
-
-    .line.highlight {
-      outline: 4px solid rgba(185, 134, 69, 0.55);
-      box-shadow: 0 0 0 7px rgba(185, 134, 69, 0.16);
-      animation: pulseLine 0.9s ease-in-out infinite alternate;
-    }
-
-    .line.hit {
-      outline: 4px solid rgba(184, 91, 76, 0.65);
-      box-shadow: 0 0 0 7px rgba(184, 91, 76, 0.16);
-      animation: pulseHit 0.9s ease-in-out infinite alternate;
-    }
-
-    @keyframes pulseLine {
-      from { transform: translateY(0); }
-      to { transform: translateY(-2px); }
-    }
-
-    @keyframes pulseHit {
-      from { transform: scale(1); }
-      to { transform: scale(1.015); }
-    }
-
-
-    .history-list {
-      display: grid;
-      gap: 8px;
-      margin-top: 10px;
-      max-height: 220px;
-      overflow: auto;
-      padding-right: 4px;
-    }
-
-    .history-item {
-      display: grid;
-      grid-template-columns: auto 1fr auto;
-      gap: 10px;
-      align-items: center;
-      padding: 10px 12px;
-      border-radius: 14px;
-      background: rgba(238, 224, 200, 0.55);
-      border: 1px solid rgba(126, 93, 51, 0.14);
-      font-size: 13px;
-    }
-
-    .history-badge {
-      min-width: 42px;
-      text-align: center;
-      padding: 5px 8px;
-      border-radius: 999px;
-      font-weight: 900;
-      color: #fff;
-    }
-
-    .history-badge.win {
-      background: var(--green);
-    }
-
-    .history-badge.lose {
-      background: var(--danger);
-    }
-
-    .history-badge.draw {
-      background: var(--muted);
-    }
-
-    .history-meta {
-      color: var(--muted);
+      min-height: 44px;
       font-size: 12px;
-      line-height: 1.35;
+      line-height: 1.15;
+      white-space: normal;
     }
 
-    .history-score {
-      font-weight: 900;
-      white-space: nowrap;
-    }
-
-    .record-summary {
-      display: flex;
-      flex-wrap: wrap;
+    .mid-panel {
+      display: grid;
+      grid-template-columns: 1fr auto 1fr;
+      grid-template-areas:
+        "turn dice info"
+        "actions actions actions";
       gap: 8px;
-      margin-top: 8px;
-      color: var(--muted);
-      font-size: 13px;
-      justify-content: center;
-    }
-
-    .record-summary strong {
-      color: var(--ink);
-    }
-
-
-
-    .board-message-panel {
-      margin: 0;
-      border: 2px solid rgba(185, 134, 69, 0.22);
-      background: rgba(255, 250, 240, 0.94);
-    }
-
-    .board-message-panel .message {
-      min-height: auto;
-      font-size: 14px;
-    }
-
-    .mid-dice-panel {
-      display: flex;
       align-items: center;
-      justify-content: space-between;
-      gap: 10px;
-      padding: 12px 14px;
-      border-radius: 22px;
-      background: rgba(255, 250, 240, 0.94);
-      border: 3px solid rgba(185, 134, 69, 0.48);
-      box-shadow: var(--shadow);
       position: sticky;
       top: 8px;
-      z-index: 15;
-      backdrop-filter: blur(8px);
-      margin: 4px 0;
+      z-index: 10;
+      border: 3px solid rgba(185, 134, 69, .45);
+      background: rgba(255, 250, 240, 0.96);
+      margin: 2px 0;
     }
 
-    .mid-panel-title {
+    .mid-panel::before {
+      content: "현재 주사위";
       position: absolute;
       top: -12px;
       left: 50%;
@@ -430,27 +308,13 @@
       white-space: nowrap;
     }
 
-    .mid-turn,
-    .mid-info {
-      min-width: 74px;
-      display: grid;
-      gap: 2px;
-      line-height: 1.15;
-    }
+    .mid-turn { grid-area: turn; }
+    .mid-info { grid-area: info; text-align: right; }
 
-    .mid-info {
-      text-align: right;
-    }
-
-    .mid-label {
-      font-size: 11px;
-      color: var(--muted);
-      font-weight: 700;
-    }
-
-    .mid-current-dice {
-      width: 58px;
-      height: 58px;
+    .current-dice {
+      grid-area: dice;
+      width: 60px;
+      height: 60px;
       border-radius: 16px;
       background: #fff;
       border: 3px solid var(--accent);
@@ -458,381 +322,151 @@
       place-items: center;
       font-size: 30px;
       font-weight: 900;
+      justify-self: center;
       box-shadow: inset 0 -5px 0 rgba(0,0,0,.07);
-      flex: 0 0 auto;
     }
 
-
-    .mid-reroll-btn {
-      min-height: 42px;
-      padding: 9px 12px;
-      border-radius: 14px;
-      background: var(--accent-dark);
-      font-size: 13px;
-      white-space: nowrap;
-      flex: 0 0 auto;
-    }
-
-    .mid-current-dice.shield {
+    .current-dice.shield {
       border-color: var(--blue);
       background: #eef6ff;
       color: #244e7c;
       box-shadow:
         inset 0 -5px 0 rgba(0,0,0,.07),
-        0 0 0 5px rgba(79, 119, 168, 0.18),
-        0 0 18px rgba(79, 119, 168, 0.28);
+        0 0 0 5px rgba(79, 119, 168, 0.18);
     }
 
-    .footer {
-      margin: 16px 0 4px;
-      color: var(--muted);
+    .actions {
+      grid-area: actions;
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 8px;
+    }
+
+    .message {
+      line-height: 1.45;
       font-size: 13px;
-      text-align: center;
-      line-height: 1.5;
-    }
-
-    @media (max-width: 760px) {
-      body {
-        padding: 12px;
-      }
-
-      .top-ui {
-        grid-template-columns: 1fr;
-      }
-
-      .lines {
-        grid-template-columns: 1fr;
-      }
-
-      .side {
-        padding: 12px;
-      }
-
-      .slots {
-        grid-template-columns: repeat(3, 1fr);
-      }
-
-      .slot {
-        min-height: 58px;
-      }
-    }
-  
-    /* ===== Mobile web-app optimization ===== */
-    html {
-      -webkit-text-size-adjust: 100%;
-      touch-action: manipulation;
-    }
-
-    body {
-      overscroll-behavior: none;
-      -webkit-tap-highlight-color: transparent;
-      padding-bottom: calc(112px + env(safe-area-inset-bottom));
-    }
-
-    .mobile-hint {
-      display: none;
-      margin: 8px auto 0;
-      max-width: 520px;
-      padding: 8px 12px;
-      border-radius: 999px;
-      background: rgba(255, 250, 240, 0.78);
-      border: 1px solid rgba(126, 93, 51, 0.14);
-      color: var(--muted);
-      font-size: 12px;
-      text-align: center;
+      min-height: 42px;
     }
 
     .rules-panel {
-      margin-top: 14px;
-      padding: 14px;
-      border-radius: 18px;
-      background: rgba(238, 224, 200, 0.55);
-      border: 1px solid rgba(126, 93, 51, 0.16);
+      margin-top: 10px;
+      padding-top: 10px;
+      border-top: 1px dashed rgba(126, 93, 51, 0.22);
+      font-size: 13px;
       line-height: 1.55;
-      font-size: 14px;
-    }
-
-    .rules-panel h3 {
-      margin: 0 0 10px;
-      font-size: 18px;
     }
 
     .rules-panel p {
-      margin: 8px 0;
+      margin: 7px 0;
     }
 
-    .controls {
+    .history {
+      margin-top: 10px;
+    }
+
+    .history-title {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 8px;
+      margin-bottom: 8px;
+    }
+
+    .history-title h3 {
+      margin: 0;
+      font-size: 16px;
+    }
+
+    .record-summary {
+      color: var(--muted);
+      font-size: 13px;
+      line-height: 1.4;
+      margin-bottom: 8px;
+    }
+
+    .history-list {
       display: grid;
-      grid-template-columns: repeat(2, minmax(0, 1fr));
-      gap: 10px;
+      gap: 6px;
+      max-height: 180px;
+      overflow: auto;
+      padding-right: 2px;
     }
 
-    .controls button {
-      min-height: 48px;
-      font-size: 15px;
-      padding: 12px 10px;
+    .history-item {
+      display: flex;
+      justify-content: space-between;
+      gap: 8px;
+      align-items: center;
+      padding: 8px 10px;
+      border-radius: 14px;
+      background: rgba(255,255,255,.55);
+      border: 1px solid rgba(126,93,51,.12);
+      font-size: 12px;
     }
 
-    @media (max-width: 760px) {
-      body {
-        padding: 10px 8px calc(118px + env(safe-area-inset-bottom));
-      }
+    .history-result {
+      font-weight: 900;
+      white-space: nowrap;
+    }
 
-      .app {
-        max-width: 520px;
-      }
+    .history-result.win { color: var(--green); }
+    .history-result.lose { color: var(--danger); }
+    .history-result.draw { color: var(--muted); }
 
-      header {
-        margin-bottom: 10px;
-      }
+    .history-meta {
+      color: var(--muted);
+      text-align: right;
+      font-size: 11px;
+      line-height: 1.25;
+    }
 
-      h1 {
-        font-size: 28px;
-        margin: 4px 0;
-      }
-
-      .subtitle {
-        font-size: 12px;
-        line-height: 1.35;
-        padding: 0 4px;
-      }
-
-      .mobile-hint {
-        display: block;
-      }
-
-
-      .mid-dice-panel {
-        display: grid;
-        grid-template-columns: 1fr auto 1fr;
-        grid-template-areas:
-          "turn dice info"
-          "reroll reroll reroll";
-        row-gap: 8px;
-      }
-
-      .mid-turn {
-        grid-area: turn;
-      }
-
-      .mid-current-dice {
-        grid-area: dice;
-        justify-self: center;
-      }
-
-      .mid-info {
-        grid-area: info;
-      }
-
-      .mid-reroll-btn {
-        grid-area: reroll;
-        width: 100%;
-        min-height: 44px;
-        font-size: 14px;
-      }
-
-      .top-ui {
-        grid-template-columns: 1fr;
-        gap: 8px;
-        margin-bottom: 10px;
-      }
-
-      .card {
-        border-radius: 18px;
-        padding: 12px;
-      }
-
-      .turn-card {
-        display: grid;
-        grid-template-columns: 1fr auto 1fr;
-        align-items: center;
-        gap: 8px;
-        text-align: left;
-      }
-
-      .turn-card .label:first-child {
-        grid-column: 1;
-        margin-bottom: 0;
-      }
-
-      #turnText {
-        grid-column: 1;
-        font-size: 16px;
-      }
-
-      #currentDice {
-        grid-column: 2;
-        grid-row: 1 / span 3;
-      }
-
-      #diceInfo {
-        grid-column: 3;
-        margin-bottom: 0;
-        text-align: right;
-      }
-
-      .current-dice {
-        width: 58px;
-        height: 58px;
-        border-radius: 15px;
-        font-size: 30px;
-      }
-
-      .message {
-        min-height: auto;
-        font-size: 13px;
-      }
-
-      .board {
-        gap: 10px;
-      }
-
-
-      .board-message-panel {
-        padding: 10px 12px;
-        border-radius: 18px;
-      }
-
-      .board-message-panel .message {
-        font-size: 13px;
-        line-height: 1.45;
-      }
-
-
-      .side {
-        border-radius: 22px;
-        padding: 10px;
-      }
-
-      .side-title {
-        margin-bottom: 8px;
-      }
-
-      .side-title h2 {
-        font-size: 18px;
-      }
-
-      .line-count {
-        font-size: 12px;
+    @media (min-width: 780px) {
+      .status {
+        grid-template-columns: repeat(4, 1fr);
       }
 
       .lines {
-        grid-template-columns: 1fr;
-        gap: 8px;
+        grid-template-columns: repeat(3, 1fr);
       }
 
       .line {
-        display: grid;
-        grid-template-columns: 74px 1fr 78px;
-        align-items: center;
-        gap: 8px;
-        border-radius: 16px;
+        grid-template-columns: 1fr;
+      }
+
+      .place-btn {
+        width: 100%;
+      }
+    }
+
+    @media (max-width: 420px) {
+      body {
         padding: 8px;
       }
 
-      .line-head {
-        display: block;
-        margin-bottom: 0;
-      }
-
-      .line-head strong {
-        display: block;
-        font-size: 12px;
-        margin-bottom: 2px;
-      }
-
-      .score {
-        font-size: 22px;
-      }
-
-      .slots {
-        margin-bottom: 0;
-        gap: 6px;
-      }
-
-      .slot {
-        min-height: 42px;
-        border-radius: 12px;
-      }
-
-      .die {
-        border-radius: 12px;
-        font-size: 23px;
-      }
-
-      .die.shield::after {
-        font-size: 11px;
-        right: 3px;
-      }
-
-      .place-btn {
-        min-height: 44px;
-        padding: 8px 6px;
-        font-size: 12px;
-        line-height: 1.15;
-        white-space: normal;
-      }
-
-      .rules-panel {
-        max-height: 48vh;
-        overflow: auto;
-        font-size: 13px;
-        border-radius: 16px;
-      }
-
-      .history-list {
-        max-height: 180px;
-      }
-
-      .history-item {
-        grid-template-columns: auto 1fr;
-        gap: 8px;
-      }
-
-      .history-score {
-        grid-column: 1 / -1;
-        padding-left: 52px;
-      }
-
-      .footer {
-        font-size: 11px;
-        padding: 0 4px;
-      }
-    }
-
-    @media (max-width: 380px) {
       .line {
-        grid-template-columns: 62px 1fr 70px;
+        grid-template-columns: 64px 1fr 72px;
         gap: 6px;
       }
 
-      .slot {
-        min-height: 36px;
+      .current-dice {
+        width: 56px;
+        height: 56px;
       }
 
-      .die {
-        font-size: 20px;
+      .card,
+      .side {
+        border-radius: 18px;
       }
 
-      .score {
-        font-size: 19px;
+      .actions {
+        gap: 6px;
       }
 
-      .place-btn {
-        font-size: 11px;
-        min-height: 40px;
-      }
-
-      .controls {
-        gap: 8px;
-      }
-
-      .controls button {
-        min-height: 44px;
-        font-size: 13px;
+      button {
+        font-size: 12px;
+        padding-inline: 8px;
       }
     }
-
   </style>
 </head>
 <body>
@@ -843,245 +477,144 @@
       <div class="mobile-hint"> 혼자잘노는편 </div>
     </header>
 
-    <section class="top-ui">
-      <div class="card turn-card">
+    <section class="status">
+      <div class="card">
         <div class="label">현재 턴</div>
-        <div id="turnText" class="status-line">Player</div>
-        <div id="currentDice" class="current-dice">?</div>
-        <div id="diceInfo" class="label">주사위 대기 중</div>
+        <div id="turnText" class="big">-</div>
       </div>
-
-
-      <div class="card controls">
-        <button id="holdBtn" class="btn-danger" type="button">홀드</button>
-        <button id="rulesBtn" class="btn-blue" type="button" aria-controls="rulesPanel" aria-expanded="false">게임 설명</button>
-        <button id="newGameBtn" class="btn-blue" type="button">새 게임</button>
+      <div class="card">
+        <div class="label">선공</div>
+        <div id="firstText" class="big">-</div>
       </div>
-      <div id="rulesPanel" class="rules-panel" hidden>
-        <h3>게임 설명</h3>
-        <p><strong>목표:</strong> 양쪽 진영의 9칸이 모두 채워진 뒤, 3개 라인 중 2개 이상의 라인에서 더 높은 점수를 얻으면 승리합니다.</p>
-        <p><strong>진행:</strong> 플레이어와 AI가 번갈아 주사위를 굴립니다. 일반 주사위는 자기 진영에만 배치할 수 있습니다.</p>
-        <p><strong>선공 실드:</strong> 선공자는 첫 주사위를 실드 주사위로 받습니다. 선공 실드는 자기 진영에만 배치할 수 있고, 타짜로 리롤해도 실드 속성이 유지됩니다.</p>
-        <p><strong>알까기:</strong> 자기 주사위를 놓으려는 라인의 상대 진영에 같은 숫자의 일반 주사위가 있으면 그 주사위들을 모두 제거합니다. 이때 놓으려던 주사위도 사라지고 보너스 실드 주사위를 얻습니다.</p>
-        <p><strong>실드 주사위:</strong> 파란 테두리 주사위입니다. 알까기 대상이 되지 않습니다. 알까기로 얻은 실드 주사위는 자기 진영 또는 상대 진영의 빈칸에 배치할 수 있습니다.</p>
-        <p><strong>타짜:</strong> 플레이어와 AI가 각각 1회 사용할 수 있습니다. 리롤 결과는 직전 숫자와 같을 수 없습니다.</p>
-        <p><strong>점수:</strong> 같은 숫자 1개는 눈금 × 1, 2개는 눈금 × 3, 3개는 눈금 × 5로 계산합니다.</p>
+      <div class="card">
+        <div class="label">플레이어 칸</div>
+        <div id="playerCount" class="big">0 / 9</div>
       </div>
-    </section>
-
-
-    <section class="card" style="margin-bottom: 16px;">
-      <div class="label">최근 대전 기록</div>
-      <div id="recordSummary" class="record-summary"></div>
-      <div id="historyList" class="history-list"></div>
-      <div class="controls" style="margin-top: 10px;">
-        <button id="clearHistoryBtn" class="btn-danger" type="button">기록 초기화</button>
+      <div class="card">
+        <div class="label">AI 칸</div>
+        <div id="aiCount" class="big">0 / 9</div>
       </div>
     </section>
 
     <main class="board">
-      <section class="side ai">
+      <section id="aiSide" class="side">
         <div class="side-title">
           <h2>AI 진영</h2>
-          <span id="aiCount" class="line-count">0 / 9</span>
+          <span id="aiMiniCount" class="count">0 / 9</span>
         </div>
         <div id="aiLines" class="lines"></div>
       </section>
 
-      <section id="midDicePanel" class="mid-dice-panel" aria-live="polite">
-        <div class="mid-panel-title">현재 주사위</div>
+      <section class="card mid-panel">
         <div class="mid-turn">
-          <span class="mid-label">현재 턴</span>
+          <div class="label">현재 턴</div>
           <strong id="midTurnText">-</strong>
         </div>
-        <div id="midCurrentDice" class="mid-current-dice">?</div>
+        <div id="currentDice" class="current-dice">?</div>
         <div class="mid-info">
-          <span class="mid-label">주사위</span>
-          <strong id="midDiceInfo">-</strong>
+          <div class="label">주사위</div>
+          <strong id="diceInfo">-</strong>
         </div>
-        <button id="midRerollBtn" class="mid-reroll-btn" type="button">타짜 <span id="rerollCountText">1</span></button>
+        <div class="actions">
+          <button id="rerollBtn" class="btn-dark">타짜 <span id="rerollCount">0</span></button>
+          <button id="newGameBtn" class="btn-blue">새 게임</button>
+        </div>
       </section>
 
-      <section id="boardMessagePanel" class="card board-message-panel">
+      <section class="card">
         <div class="label">시스템 메시지</div>
-        <div id="message" class="message"></div>
+        <div id="message" class="message">게임을 시작합니다.</div>
       </section>
 
-      <section class="side player">
+      <section id="playerSide" class="side">
         <div class="side-title">
           <h2>플레이어 진영</h2>
-          <span id="playerCount" class="line-count">0 / 9</span>
+          <span id="playerMiniCount" class="count">0 / 9</span>
         </div>
         <div id="playerLines" class="lines"></div>
       </section>
-    </main>
 
-    <p class="footer">
-      점수 공식: 단일 주사위는 눈금 × 1, 같은 눈 2개는 눈금 × 3, 같은 눈 3개는 눈금 × 5로 계산합니다. 파란 테두리 주사위는 실드 주사위입니다. 선공은 랜덤이며, 선공 첫 실드 주사위는 선공자의 자기 진영에만 놓을 수 있습니다. 한쪽 진영이 먼저 9칸을 채워도 게임은 끝나지 않고, 상대가 9칸을 채울 때까지 계속 진행합니다. 타짜는 플레이어와 AI가 각각 1회씩 사용할 수 있고, 리롤 결과는 직전 숫자와 같을 수 없습니다. 선공 첫 실드 주사위를 리롤해도 실드 속성은 유지됩니다. AI는 낮은 숫자 실드를 상대 빈칸 방해용으로 둘 수 있습니다. 최근 10경기의 승패 기록과 현재/최고 연승은 현재 브라우저에 저장됩니다.
-    </p>
+      <section class="card">
+        <button id="rulesBtn" class="btn-outline" style="width:100%;" type="button" aria-controls="rulesPanel" aria-expanded="false">게임 설명</button>
+        <div id="rulesPanel" class="rules-panel" hidden>
+          <p><strong>목표:</strong> 양쪽 진영 9칸이 모두 채워진 뒤, 3개 라인 중 2개 이상에서 더 높은 점수를 얻으면 승리합니다.</p>
+          <p><strong>진행:</strong> 플레이어와 AI가 번갈아 주사위를 배치합니다.</p>
+          <p><strong>일반 주사위:</strong> 자기 진영에만 배치할 수 있습니다.</p>
+          <p><strong>선공 실드:</strong> 선공자는 첫 주사위를 실드 주사위로 받으며, 자기 진영에만 배치할 수 있습니다.</p>
+          <p><strong>알까기:</strong> 같은 라인의 상대 일반 주사위 중 같은 숫자를 모두 제거합니다. 이때 놓으려던 주사위도 사라지고 보너스 실드 주사위를 얻습니다.</p>
+          <p><strong>실드 주사위:</strong> 알까기 대상이 되지 않습니다. 보너스 실드는 자기/상대 빈칸에 배치할 수 있습니다.</p>
+          <p><strong>점수:</strong> 같은 숫자 1개는 ×1, 2개는 ×3, 3개는 ×5입니다.</p>
+          <p><strong>주의:</strong> 홀드는 사용할 수 없으며, 나온 주사위는 반드시 배치해야 합니다.</p>
+          <p><strong>새 게임:</strong> 게임 진행 중 새 게임을 누르면 플레이어 패배로 기록됩니다.</p>
+        </div>
+      </section>
+
+      <section class="card history">
+        <div class="history-title">
+          <h3>최근 AI 대전 기록</h3>
+          <button id="clearHistoryBtn" class="btn-outline" type="button">초기화</button>
+        </div>
+        <div id="recordSummary" class="record-summary">아직 기록된 대전이 없습니다.</div>
+        <div id="historyList" class="history-list"></div>
+      </section>
+    </main>
   </div>
 
   <script>
-    const OWNERS = {
-      PLAYER: "Player",
-      AI: "AI"
-    };
+    const OWNERS = { PLAYER: "PLAYER", AI: "AI" };
+    const HISTORY_KEY = "tikatukaAIHistory_recentUI_v1";
+    const MAX_HISTORY = 10;
+    const AI_DELAY = 720;
 
     const state = {
       boards: {
-        Player: [[], [], []],
+        PLAYER: [[], [], []],
         AI: [[], [], []]
       },
+      firstPlayer: OWNERS.PLAYER,
       currentTurn: OWNERS.PLAYER,
       currentDice: null,
+      isOpeningShieldPlacement: false,
       isBonusAction: false,
       rerollCounts: {
-        Player: 1,
+        PLAYER: 1,
         AI: 1
       },
       gameOver: false,
-      turnLocked: false,
-      isOpeningShieldPlacement: false,
-      firstPlayer: null,
-      actionHighlight: null
+      aiThinking: false
     };
-
-    const AI_STEP_DELAY = 1100;
 
     const els = {
       turnText: document.getElementById("turnText"),
+      firstText: document.getElementById("firstText"),
+      midTurnText: document.getElementById("midTurnText"),
+      playerCount: document.getElementById("playerCount"),
+      aiCount: document.getElementById("aiCount"),
+      playerMiniCount: document.getElementById("playerMiniCount"),
+      aiMiniCount: document.getElementById("aiMiniCount"),
+      playerLines: document.getElementById("playerLines"),
+      aiLines: document.getElementById("aiLines"),
+      playerSide: document.getElementById("playerSide"),
+      aiSide: document.getElementById("aiSide"),
       currentDice: document.getElementById("currentDice"),
       diceInfo: document.getElementById("diceInfo"),
-      message: document.getElementById("message"),
-      aiLines: document.getElementById("aiLines"),
-      playerLines: document.getElementById("playerLines"),
-      aiCount: document.getElementById("aiCount"),
-      midTurnText: document.getElementById("midTurnText"),
-      midCurrentDice: document.getElementById("midCurrentDice"),
-      midDiceInfo: document.getElementById("midDiceInfo"),
-      playerCount: document.getElementById("playerCount"),
-      rerollBtn: document.getElementById("midRerollBtn"),
-      holdBtn: document.getElementById("holdBtn"),
-      rerollCountText: document.getElementById("rerollCountText"),
+      rerollBtn: document.getElementById("rerollBtn"),
+      rerollCount: document.getElementById("rerollCount"),
       newGameBtn: document.getElementById("newGameBtn"),
-      historyList: document.getElementById("historyList"),
-      recordSummary: document.getElementById("recordSummary"),
-      clearHistoryBtn: document.getElementById("clearHistoryBtn"),
+      message: document.getElementById("message"),
       rulesBtn: document.getElementById("rulesBtn"),
-      rulesPanel: document.getElementById("rulesPanel")
+      rulesPanel: document.getElementById("rulesPanel"),
+      recordSummary: document.getElementById("recordSummary"),
+      historyList: document.getElementById("historyList"),
+      clearHistoryBtn: document.getElementById("clearHistoryBtn")
     };
 
-    const HISTORY_KEY = "tikatukaMatchHistory";
-    const MAX_HISTORY = 10;
-
-    function loadHistory() {
-      try {
-        return JSON.parse(localStorage.getItem(HISTORY_KEY)) || [];
-      } catch (error) {
-        return [];
-      }
+    function ownerName(owner) {
+      return owner === OWNERS.PLAYER ? "플레이어" : "AI";
     }
 
-    function saveHistory(history) {
-      localStorage.setItem(HISTORY_KEY, JSON.stringify(history.slice(0, MAX_HISTORY)));
-    }
-
-    function getCurrentWinStreak(history) {
-      let streak = 0;
-      for (const item of history) {
-        if (item.result !== "win") break;
-        streak += 1;
-      }
-      return streak;
-    }
-
-    function getBestWinStreak(history) {
-      let best = 0;
-      let current = 0;
-
-      // history는 최신 경기부터 저장되므로, 오래된 경기부터 읽어 실제 흐름의 최고 연승을 계산합니다.
-      [...history].reverse().forEach(item => {
-        if (item.result === "win") {
-          current += 1;
-          best = Math.max(best, current);
-        } else {
-          current = 0;
-        }
-      });
-
-      return best;
-    }
-
-    function addMatchHistory(record) {
-      const history = loadHistory();
-      history.unshift(record);
-      saveHistory(history);
-      renderHistory();
-    }
-
-    function clearMatchHistory() {
-      localStorage.removeItem(HISTORY_KEY);
-      renderHistory();
-      setMessage("최근 대전 기록을 초기화했습니다.");
-    }
-
-    function toggleRules() {
-      if (!els.rulesPanel || !els.rulesBtn) return;
-
-      const willOpen = els.rulesPanel.hidden;
-
-      els.rulesPanel.hidden = !willOpen;
-      els.rulesBtn.textContent = willOpen ? "설명 닫기" : "게임 설명";
-      els.rulesBtn.setAttribute("aria-expanded", String(willOpen));
-    }
-
-    function renderHistory() {
-      const history = loadHistory();
-
-      const wins = history.filter(item => item.result === "win").length;
-      const losses = history.filter(item => item.result === "lose").length;
-      const draws = history.filter(item => item.result === "draw").length;
-      const currentStreak = getCurrentWinStreak(history);
-      const bestStreak = getBestWinStreak(history);
-
-      els.recordSummary.innerHTML = history.length
-        ? `최근 ${history.length}전 · <strong>${wins}승</strong> ${draws}무 ${losses}패 · 현재 <strong>${currentStreak}연승</strong> · 최고 <strong>${bestStreak}연승</strong>`
-        : "아직 기록된 대전이 없습니다.";
-
-      els.historyList.innerHTML = "";
-
-      if (!history.length) {
-        const empty = document.createElement("div");
-        empty.className = "history-meta";
-        empty.style.textAlign = "center";
-        empty.textContent = "게임을 끝까지 완료하면 이곳에 승패 기록이 저장됩니다.";
-        els.historyList.appendChild(empty);
-        return;
-      }
-
-      history.forEach((item, index) => {
-        const row = document.createElement("div");
-        row.className = "history-item";
-
-        const badge = document.createElement("div");
-        badge.className = `history-badge ${item.result}`;
-        badge.textContent = item.result === "win" ? "승" : item.result === "lose" ? "패" : "무";
-
-        const meta = document.createElement("div");
-        meta.innerHTML = `
-          <strong>${index + 1}. ${item.firstPlayer === "Player" ? "플레이어" : "AI"} 선공</strong>
-          <div class="history-meta">${item.date} · 라인 ${item.playerWins}:${item.aiWins}${item.note ? " · " + item.note : ""}</div>
-        `;
-
-        const score = document.createElement("div");
-        score.className = "history-score";
-        score.textContent = `P ${item.playerTotal} : AI ${item.aiTotal}`;
-
-        row.appendChild(badge);
-        row.appendChild(meta);
-        row.appendChild(score);
-        els.historyList.appendChild(row);
-      });
+    function opposite(owner) {
+      return owner === OWNERS.PLAYER ? OWNERS.AI : OWNERS.PLAYER;
     }
 
     function rollDice(isShield = false) {
@@ -1099,22 +632,6 @@
       };
     }
 
-    function opposite(owner) {
-      return owner === OWNERS.PLAYER ? OWNERS.AI : OWNERS.PLAYER;
-    }
-
-    function totalDice(owner) {
-      return state.boards[owner].reduce((sum, line) => sum + line.length, 0);
-    }
-
-    function isBoardFull(owner) {
-      return totalDice(owner) >= 9;
-    }
-
-    function hasAnySpace(owner) {
-      return state.boards[owner].some(line => line.length < 3);
-    }
-
     function lineScore(line) {
       const counts = {};
       line.forEach(die => {
@@ -1130,203 +647,122 @@
       }, 0);
     }
 
-    function lineResult(lineIndex, owner) {
-      const myScore = lineScore(state.boards[owner][lineIndex]);
-      const enemyScore = lineScore(state.boards[opposite(owner)][lineIndex]);
-      if (myScore > enemyScore) return "win";
-      if (myScore < enemyScore) return "lose";
-      return "";
+    function totalDice(owner) {
+      return state.boards[owner].reduce((sum, line) => sum + line.length, 0);
     }
 
-    function setMessage(text) {
-      els.message.innerHTML = text;
-    }
-
-    function wait(ms = AI_STEP_DELAY) {
-      return new Promise(resolve => window.setTimeout(resolve, ms));
-    }
-
-    function setHighlight(owner, lineIndex, type = "highlight") {
-      state.actionHighlight = { owner, lineIndex, type };
-      render();
-    }
-
-    function clearHighlight() {
-      state.actionHighlight = null;
-      render();
-    }
-
-    function startTurn(owner) {
-      if (state.gameOver) return;
-      if (checkGameOver()) return;
-
-      if (isBoardFull(owner)) {
-        const other = opposite(owner);
-        if (!isBoardFull(other)) {
-          const ownerText = owner === OWNERS.PLAYER ? "플레이어" : "AI";
-          const otherText = other === OWNERS.PLAYER ? "플레이어" : "AI";
-          setMessage(`${ownerText} 진영은 이미 9칸이 모두 찼습니다.<br>${otherText}가 남은 칸을 채울 때까지 계속 진행합니다.`);
-          window.setTimeout(() => startTurn(other), 500);
-          return;
-        }
-      }
-
-      state.currentTurn = owner;
-      state.isBonusAction = false;
-
-      const isVeryFirstTurn =
-        owner === state.firstPlayer &&
-        totalDice(OWNERS.PLAYER) === 0 &&
-        totalDice(OWNERS.AI) === 0;
-
-      state.isOpeningShieldPlacement = isVeryFirstTurn;
-      state.currentDice = rollDice(isVeryFirstTurn);
-      state.turnLocked = owner === OWNERS.AI;
-
-      if (isVeryFirstTurn) {
-        const ownerText = owner === OWNERS.PLAYER ? "플레이어" : "AI";
-        const placeText = owner === OWNERS.PLAYER
-          ? "내 진영에만 배치할 수 있습니다."
-          : "AI 자기 진영에만 배치합니다.";
-        setMessage(`이번 게임의 선공은 <strong>${ownerText}</strong>입니다.<br>선공 첫 주사위는 실드 주사위입니다. 주사위 ${state.currentDice.value}을(를) ${placeText}`);
-      } else {
-        setMessage(`${owner === OWNERS.PLAYER ? "플레이어" : "AI"} 턴입니다. 주사위 ${state.currentDice.value}이(가) 나왔습니다.`);
-      }
-
-      render();
-
-      if (owner === OWNERS.AI) {
-        window.setTimeout(aiPlay, AI_STEP_DELAY);
-      }
-    }
-
-    function endTurn(options = {}) {
-      render();
-
-      if (checkGameOver()) return;
-
-      const preferredNext = opposite(state.currentTurn);
-      const actualNext = isBoardFull(preferredNext) ? state.currentTurn : preferredNext;
-      const delay = options.delayNext ?? 0;
-
-      if (isBoardFull(preferredNext) && !isBoardFull(state.currentTurn)) {
-        const fullText = preferredNext === OWNERS.PLAYER ? "플레이어" : "AI";
-        const nextText = actualNext === OWNERS.PLAYER ? "플레이어" : "AI";
-        setMessage(`${fullText} 진영은 이미 9칸이 모두 찼습니다.<br>${nextText}만 남은 칸을 채울 때까지 계속 진행합니다.`);
-      }
-
-      if (delay > 0) {
-        window.setTimeout(() => startTurn(actualNext), delay);
-      } else {
-        startTurn(actualNext);
-      }
+    function isBoardFull(owner) {
+      return totalDice(owner) >= 9;
     }
 
     function canPlace(owner, lineIndex) {
       return state.boards[owner][lineIndex].length < 3;
     }
 
-    function placeDice(targetOwner, lineIndex) {
-      if (state.gameOver || state.turnLocked || !state.currentDice) return;
+    function getLineWins() {
+      let player = 0;
+      let ai = 0;
 
-      if (state.currentTurn !== OWNERS.PLAYER) return;
-      if (!canPlace(targetOwner, lineIndex)) {
-        setMessage("해당 라인은 이미 가득 찼습니다.");
-        return;
+      for (let i = 0; i < 3; i++) {
+        const ps = lineScore(state.boards.PLAYER[i]);
+        const as = lineScore(state.boards.AI[i]);
+
+        if (ps > as) player++;
+        if (as > ps) ai++;
       }
 
-      if (state.isOpeningShieldPlacement) {
-        if (targetOwner !== OWNERS.PLAYER) {
-          setMessage("선공 첫 실드 주사위는 선공자의 자기 진영에만 배치할 수 있습니다.");
-          return;
-        }
-        state.boards[OWNERS.PLAYER][lineIndex].push({ ...state.currentDice });
-        setMessage(`플레이어가 선공 실드 주사위를 내 ${lineIndex + 1}라인에 배치했습니다. 이 주사위는 알까기 대상이 되지 않습니다.`);
-        state.isOpeningShieldPlacement = false;
-        state.currentDice = null;
-        endTurn();
-        return;
-      }
-
-      if (state.isBonusAction) {
-        state.boards[targetOwner][lineIndex].push({ ...state.currentDice });
-        setMessage(`실드 주사위를 ${targetOwner === OWNERS.PLAYER ? "내" : "상대"} ${lineIndex + 1}라인에 배치했습니다. 실드 주사위는 알까기 대상이 되지 않습니다.`);
-        state.isBonusAction = false;
-        state.currentDice = null;
-        endTurn();
-        return;
-      }
-
-      resolveNormalPlacement(OWNERS.PLAYER, lineIndex);
+      return { player, ai };
     }
 
-    function resolveNormalPlacement(owner, lineIndex) {
-      const enemy = opposite(owner);
-      const enemyLine = state.boards[enemy][lineIndex];
-      const before = enemyLine.length;
+    function loadHistory() {
+      try {
+        return JSON.parse(localStorage.getItem(HISTORY_KEY)) || [];
+      } catch {
+        return [];
+      }
+    }
 
-      state.boards[enemy][lineIndex] = enemyLine.filter(die => {
-        return die.isShield || die.value !== state.currentDice.value;
+    function saveHistory(history) {
+      localStorage.setItem(HISTORY_KEY, JSON.stringify(history.slice(0, MAX_HISTORY)));
+    }
+
+    function getCurrentWinStreak(history) {
+      let current = 0;
+      for (const item of history) {
+        if (item.result === "win") current++;
+        else break;
+      }
+      return current;
+    }
+
+    function getBestWinStreak(history) {
+      let best = 0;
+      let current = 0;
+
+      history.slice().reverse().forEach(item => {
+        if (item.result === "win") {
+          current++;
+          best = Math.max(best, current);
+        } else {
+          current = 0;
+        }
       });
 
-      const removed = before - state.boards[enemy][lineIndex].length;
-
-      if (removed > 0) {
-        const removedValue = state.currentDice.value;
-        state.currentDice = rollDice(true);
-        state.isBonusAction = true;
-
-        if (owner === OWNERS.PLAYER) {
-          setMessage(`알까기 성공! 상대 ${lineIndex + 1}라인의 ${removedValue} 주사위 ${removed}개를 제거했습니다.<br>보너스 실드 주사위 ${state.currentDice.value}을(를) 원하는 빈칸에 배치하세요.`);
-          render();
-        }
-        return;
-      }
-
-      state.boards[owner][lineIndex].push({ ...state.currentDice });
-      const ownerName = owner === OWNERS.PLAYER ? "플레이어" : "AI";
-      setMessage(`${ownerName}가 ${lineIndex + 1}라인에 ${state.currentDice.value} 주사위를 배치했습니다.`);
-      state.currentDice = null;
-
-      if (owner === OWNERS.AI) {
-        state.turnLocked = false;
-      }
-
-      endTurn();
+      return best;
     }
 
-    function reroll() {
-      if (state.gameOver || state.turnLocked || state.currentTurn !== OWNERS.PLAYER) return;
-      if (state.isBonusAction) {
-        setMessage("알까기 보너스 실드 주사위 배치 단계에서는 타짜를 사용할 수 없습니다.");
-        return;
-      }
-      if (state.rerollCounts.Player <= 0) {
-        setMessage("타짜 사용 횟수가 남아 있지 않습니다.");
-        return;
-      }
-      state.rerollCounts.Player -= 1;
-      const oldValue = state.currentDice.value;
-      const keepShield = state.currentDice.isShield;
-      state.currentDice = rollDifferentDice(oldValue, keepShield);
-
-      const shieldText = keepShield ? "<br>선공 실드 주사위이므로 리롤 후에도 실드 속성이 유지됩니다." : "";
-      setMessage(`플레이어 타짜 발동! ${oldValue}을(를) 제외하고 다시 굴려 <strong>${state.currentDice.value}</strong>이(가) 나왔습니다.${shieldText}`);
-      render();
+    function addMatchHistory(record) {
+      const history = loadHistory();
+      history.unshift(record);
+      saveHistory(history);
+      renderHistory();
     }
 
-    function hold() {
-      if (state.gameOver || state.turnLocked || state.currentTurn !== OWNERS.PLAYER) return;
-      if (state.isOpeningShieldPlacement) {
-        setMessage("선공 첫 실드 주사위는 반드시 내 진영에 배치해야 합니다.");
-        return;
-      }
-      state.currentDice = null;
-      state.isBonusAction = false;
-      setMessage("홀드! 현재 주사위를 버리고 턴을 넘겼습니다.");
-      endTurn();
+    function renderHistory() {
+      const history = loadHistory();
+
+      const wins = history.filter(item => item.result === "win").length;
+      const losses = history.filter(item => item.result === "lose").length;
+      const draws = history.filter(item => item.result === "draw").length;
+      const currentStreak = getCurrentWinStreak(history);
+      const bestStreak = getBestWinStreak(history);
+
+      els.recordSummary.innerHTML = history.length
+        ? `최근 ${history.length}전 · <strong>${wins}승</strong> ${draws}무 ${losses}패 · 현재 <strong>${currentStreak}연승</strong> · 최고 <strong>${bestStreak}연승</strong>`
+        : "아직 기록된 대전이 없습니다.";
+
+      els.historyList.innerHTML = "";
+
+      history.forEach(item => {
+        const row = document.createElement("div");
+        row.className = "history-item";
+
+        const result = document.createElement("div");
+        result.className = `history-result ${item.result === "win" ? "win" : item.result === "lose" ? "lose" : "draw"}`;
+        result.textContent =
+          item.result === "win" ? "승리" :
+          item.result === "lose" ? "패배" :
+          "무승부";
+
+        const meta = document.createElement("div");
+        meta.className = "history-meta";
+        meta.textContent = `${item.date} · 라인 ${item.playerWins}:${item.aiWins}${item.note ? " · " + item.note : ""}`;
+
+        row.appendChild(result);
+        row.appendChild(meta);
+        els.historyList.appendChild(row);
+      });
     }
 
+    function clearMatchHistory() {
+      localStorage.removeItem(HISTORY_KEY);
+      renderHistory();
+      setMessage("최근 AI 대전 기록을 초기화했습니다.");
+    }
+
+    function setMessage(message) {
+      els.message.textContent = message;
+    }
 
     function hasGameStarted() {
       return totalDice(OWNERS.PLAYER) > 0 ||
@@ -1335,7 +771,7 @@
     }
 
     function recordForfeitLoss() {
-      const playerTotal = state.boards.Player.reduce((sum, line) => sum + lineScore(line), 0);
+      const playerTotal = state.boards.PLAYER.reduce((sum, line) => sum + lineScore(line), 0);
       const aiTotal = state.boards.AI.reduce((sum, line) => sum + lineScore(line), 0);
 
       addMatchHistory({
@@ -1356,46 +792,30 @@
     }
 
     function checkGameOver() {
-      const playerFull = isBoardFull(OWNERS.PLAYER);
-      const aiFull = isBoardFull(OWNERS.AI);
+      if (!isBoardFull(OWNERS.PLAYER) || !isBoardFull(OWNERS.AI)) return false;
 
-      // 게임은 한쪽만 가득 찼을 때 끝나지 않습니다.
-      // 양쪽 진영이 모두 9칸을 채운 뒤에만 최종 승패를 판정합니다.
-      if (!playerFull || !aiFull) return false;
-
+      const { player, ai } = getLineWins();
       state.gameOver = true;
-      state.turnLocked = true;
+      state.currentDice = null;
+      state.aiThinking = false;
 
-      let playerWins = 0;
-      let aiWins = 0;
+      let resultText = "무승부";
+      let result = "draw";
 
-      for (let i = 0; i < 3; i++) {
-        const p = lineScore(state.boards.Player[i]);
-        const a = lineScore(state.boards.AI[i]);
-        if (p > a) playerWins += 1;
-        if (a > p) aiWins += 1;
+      if (player >= 2) {
+        resultText = "플레이어 승리";
+        result = "win";
+      } else if (ai >= 2) {
+        resultText = "AI 승리";
+        result = "lose";
       }
-
-      let result = "무승부!";
-      let resultCode = "draw";
-      if (playerWins >= 2) {
-        result = "플레이어 승리!";
-        resultCode = "win";
-      }
-      if (aiWins >= 2) {
-        result = "AI 승리!";
-        resultCode = "lose";
-      }
-
-      const playerTotal = state.boards.Player.reduce((sum, line) => sum + lineScore(line), 0);
-      const aiTotal = state.boards.AI.reduce((sum, line) => sum + lineScore(line), 0);
 
       addMatchHistory({
-        result: resultCode,
-        playerWins,
-        aiWins,
-        playerTotal,
-        aiTotal,
+        result,
+        playerWins: player,
+        aiWins: ai,
+        playerTotal: state.boards.PLAYER.reduce((sum, line) => sum + lineScore(line), 0),
+        aiTotal: state.boards.AI.reduce((sum, line) => sum + lineScore(line), 0),
         firstPlayer: state.firstPlayer,
         date: new Date().toLocaleString("ko-KR", {
           month: "2-digit",
@@ -1405,367 +825,44 @@
         })
       });
 
-      const updatedHistory = loadHistory();
-      const currentStreak = getCurrentWinStreak(updatedHistory);
-      const streakText = resultCode === "win"
-        ? `<br>현재 플레이어 <strong>${currentStreak}연승</strong> 중입니다!`
-        : "";
-
-      setMessage(`양쪽 진영의 9칸이 모두 채워졌습니다. 게임 종료!<br>라인 승리 수: 플레이어 ${playerWins} : AI ${aiWins}<br><strong>${result}</strong>${streakText}`);
+      setMessage(`게임 종료! 라인 승리 수: 플레이어 ${player} : AI ${ai} · ${resultText}`);
       render();
       return true;
     }
 
-    function bestNormalLineForAI() {
-      const dice = state.currentDice.value;
-      const candidates = [];
+    function startTurn(owner) {
+      if (checkGameOver()) return;
 
-      for (let i = 0; i < 3; i++) {
-        if (!canPlace(OWNERS.AI, i)) continue;
-
-        const playerLine = state.boards.Player[i];
-        const removable = playerLine.filter(d => !d.isShield && d.value === dice).length;
-
-        const simulatedOwn = [...state.boards.AI[i], state.currentDice];
-        const scoreGain = lineScore(simulatedOwn) - lineScore(state.boards.AI[i]);
-
-        const playerScore = lineScore(state.boards.Player[i]);
-        const aiScore = lineScore(state.boards.AI[i]);
-        const closeLineBonus = playerScore >= aiScore ? 2 : 0;
-
-        candidates.push({
-          index: i,
-          value: removable * 100 + scoreGain * 5 + closeLineBonus - state.boards.AI[i].length,
-          removable
-        });
-      }
-
-      candidates.sort((a, b) => b.value - a.value);
-      return candidates[0]?.index ?? state.boards.AI.findIndex(line => line.length < 3);
-    }
-
-    function bestOpeningShieldLineForAI() {
-      const emptyLines = [0, 1, 2].filter(i => canPlace(OWNERS.AI, i));
-      if (emptyLines.length === 0) return 0;
-
-      // 선공 실드는 자기 진영에만 놓을 수 있으므로, 가운데 라인을 우선해 균형 있게 시작합니다.
-      if (emptyLines.includes(1)) return 1;
-      return emptyLines[0];
-    }
-
-    function shouldAIReroll(targetLine) {
-      if (state.rerollCounts.AI <= 0) return false;
-      if (state.isBonusAction) return false;
-
-      const dice = state.currentDice.value;
-      const canHit = state.boards.Player.some(line =>
-        line.some(die => !die.isShield && die.value === dice)
-      );
-
-      const aiHasSameNumber = state.boards.AI.some(line =>
-        line.some(die => die.value === dice)
-      );
-
-      const currentGain = lineScore([...state.boards.AI[targetLine], state.currentDice]) - lineScore(state.boards.AI[targetLine]);
-
-      // AI는 알까기 가능하거나, 같은 숫자 시너지가 있거나, 점수 이득이 충분하면 타짜를 아낍니다.
-      if (canHit || aiHasSameNumber || currentGain >= 5) return false;
-
-      // 낮은 숫자이면서 특별한 이득이 없을 때 1회만 타짜를 사용합니다.
-      return dice <= 3;
-    }
-
-    async function aiPlay() {
-      if (state.gameOver || state.currentTurn !== OWNERS.AI) return;
-
-      let diceValue = state.currentDice.value;
-      setMessage(`AI가 주사위를 굴렸습니다.<br><strong>${diceValue}</strong>이(가) 나왔습니다. AI가 배치할 라인을 고르는 중입니다.`);
-      render();
-      await wait();
-
-      if (state.gameOver || state.currentTurn !== OWNERS.AI) return;
-
-      let targetLine = state.isOpeningShieldPlacement
-        ? bestOpeningShieldLineForAI()
-        : bestNormalLineForAI();
-
-      if (shouldAIReroll(targetLine)) {
-        const oldValue = state.currentDice.value;
-        const keepShield = state.currentDice.isShield;
-        state.rerollCounts.AI -= 1;
-        state.currentDice = rollDifferentDice(oldValue, keepShield);
-        diceValue = state.currentDice.value;
-
-        const shieldText = keepShield ? "<br>선공 실드 주사위이므로 리롤 후에도 실드 속성이 유지됩니다." : "";
-        setMessage(`AI가 타짜를 사용했습니다!<br>${oldValue}을(를) 제외하고 다시 굴려 <strong>${diceValue}</strong>이(가) 나왔습니다. AI의 타짜는 이제 0회 남았습니다.${shieldText}`);
-        render();
-        await wait(1400);
-
-        if (state.gameOver || state.currentTurn !== OWNERS.AI) return;
-        targetLine = state.isOpeningShieldPlacement
-          ? bestOpeningShieldLineForAI()
-          : bestNormalLineForAI();
-      }
-
-      if (state.isOpeningShieldPlacement) {
-        setHighlight(OWNERS.AI, targetLine, "highlight");
-        setMessage(`AI가 선공 실드 주사위 <strong>${diceValue}</strong>을(를) 자기 ${targetLine + 1}라인에 배치합니다.`);
-        await wait(1300);
-
-        state.boards.AI[targetLine].push({ ...state.currentDice });
-        state.currentDice = null;
-        state.isOpeningShieldPlacement = false;
-        state.turnLocked = false;
-
-        setMessage(`AI가 선공 실드 주사위를 자기 ${targetLine + 1}라인에 배치했습니다.<br>이 주사위는 알까기 대상이 되지 않습니다.`);
-        render();
-        await wait(1200);
-
-        clearHighlight();
-        endTurn({ delayNext: 300 });
-        return;
-      }
-
-      const playerLine = state.boards.Player[targetLine];
-      const removable = playerLine.filter(d => !d.isShield && d.value === diceValue).length;
-
-      if (removable > 0) {
-        setHighlight(OWNERS.PLAYER, targetLine, "hit");
-        setMessage(`AI가 <strong>${diceValue}</strong> 주사위로 플레이어 ${targetLine + 1}라인을 노립니다.<br>같은 숫자의 일반 주사위 ${removable}개가 있어 알까기가 발동됩니다!`);
-        await wait(1400);
-
-        state.boards.Player[targetLine] = state.boards.Player[targetLine].filter(die => {
-          return die.isShield || die.value !== diceValue;
-        });
-
-        state.currentDice = rollDice(true);
-        state.isBonusAction = true;
-
-        setMessage(`알까기 성공! AI가 플레이어 ${targetLine + 1}라인의 ${diceValue} 주사위 ${removable}개를 제거했습니다.<br>AI가 보너스 실드 주사위 <strong>${state.currentDice.value}</strong>을(를) 얻었습니다.`);
-        render();
-        await wait(1500);
-
-        clearHighlight();
-        await aiPlaceShield();
-        return;
-      }
-
-      setHighlight(OWNERS.AI, targetLine, "highlight");
-      setMessage(`AI가 <strong>${diceValue}</strong> 주사위를 자기 ${targetLine + 1}라인에 배치합니다.`);
-      await wait(1300);
-
-      state.boards.AI[targetLine].push({ ...state.currentDice });
-      state.currentDice = null;
-      state.turnLocked = false;
-
-      setMessage(`AI가 자기 ${targetLine + 1}라인에 주사위를 배치했습니다.<br>이제 플레이어 턴으로 넘어갑니다.`);
-      render();
-      await wait(1000);
-
-      clearHighlight();
-      endTurn({ delayNext: 300 });
-    }
-
-    async function aiPlaceShield() {
-      if (state.gameOver || state.currentTurn !== OWNERS.AI || !state.isBonusAction) return;
-
-      const choices = [];
-
-      for (const owner of [OWNERS.AI, OWNERS.PLAYER]) {
-        for (let i = 0; i < 3; i++) {
-          if (!canPlace(owner, i)) continue;
-
-          const beforeAI = lineScore(state.boards.AI[i]);
-          const beforePlayer = lineScore(state.boards.Player[i]);
-
-          const simulated = [...state.boards[owner][i], state.currentDice];
-          const afterTarget = lineScore(simulated);
-
-          let value = 0;
-          if (owner === OWNERS.AI) {
-            value = (afterTarget - beforeAI) * 4;
-          } else {
-            const shieldValue = state.currentDice.value;
-            const playerLineLength = state.boards.Player[i].length;
-            const playerLineScore = beforePlayer;
-            const playerDuplicateCount = state.boards.Player[i].filter(die => die.value === shieldValue).length;
-
-            // 기본적으로 상대 라인에 실드를 두는 것은 상대 점수를 올릴 수 있으므로 낮게 평가합니다.
-            value = beforePlayer - afterTarget;
-
-            // 단, 낮은 숫자 실드(1~3)는 상대의 빈칸을 막는 방해 수로 활용할 수 있습니다.
-            // 특히 상대 라인이 이미 2칸 차 있어 마지막 칸을 막을 때는 더 높게 평가합니다.
-            if (shieldValue <= 3) {
-              value += 10;
-              if (playerLineLength === 2) value += 18;
-              if (playerLineScore >= lineScore(state.boards.AI[i])) value += 8;
-            }
-
-            // 같은 숫자가 이미 있으면 시너지를 만들어 줄 수 있으므로 피합니다.
-            if (playerDuplicateCount > 0) {
-              value -= 22 * playerDuplicateCount;
-            }
-          }
-
-          value -= state.boards[owner][i].length;
-          choices.push({ owner, index: i, value });
+      if (isBoardFull(owner)) {
+        const other = opposite(owner);
+        if (!isBoardFull(other)) {
+          state.currentTurn = other;
+          state.currentDice = rollDice(false);
+          state.isOpeningShieldPlacement = false;
+          state.isBonusAction = false;
+          setMessage(`${ownerName(owner)} 진영은 이미 9칸이 모두 찼습니다. ${ownerName(other)}가 남은 칸을 채울 때까지 계속 진행합니다.`);
+          render();
+          if (other === OWNERS.AI) scheduleAI();
+          return;
         }
       }
 
-      choices.sort((a, b) => b.value - a.value);
-      const choice = choices[0];
-
-      if (!choice) {
-        state.currentDice = null;
-        state.isBonusAction = false;
-        state.turnLocked = false;
-        endTurn({ delayNext: 300 });
-        return;
-      }
-
-      const ownerText = choice.owner === OWNERS.AI ? "자기" : "플레이어";
-      setHighlight(choice.owner, choice.index, choice.owner === OWNERS.PLAYER ? "hit" : "highlight");
-      setMessage(`AI가 보너스 실드 주사위 <strong>${state.currentDice.value}</strong>을(를) ${ownerText} ${choice.index + 1}라인에 배치하려고 합니다.`);
-      await wait(1300);
-
-      state.boards[choice.owner][choice.index].push({ ...state.currentDice });
-      setMessage(`AI가 실드 주사위 ${state.currentDice.value}을(를) ${ownerText} ${choice.index + 1}라인에 배치했습니다.<br>실드 주사위는 이후 알까기 대상에서 제외됩니다.`);
-      state.currentDice = null;
+      state.currentTurn = owner;
+      state.currentDice = rollDice(false);
+      state.isOpeningShieldPlacement = false;
       state.isBonusAction = false;
-      state.turnLocked = false;
+      setMessage(`${ownerName(owner)} 턴입니다. 주사위 ${state.currentDice.value}이(가) 나왔습니다.`);
       render();
-      await wait(1200);
 
-      clearHighlight();
-      endTurn({ delayNext: 300 });
+      if (owner === OWNERS.AI) scheduleAI();
     }
 
-    function renderLines(owner, container) {
-      container.innerHTML = "";
+    function endTurn() {
+      if (checkGameOver()) return;
 
-      for (let i = 0; i < 3; i++) {
-        const line = state.boards[owner][i];
-        const lineEl = document.createElement("div");
-        const isHighlighted =
-          state.actionHighlight &&
-          state.actionHighlight.owner === owner &&
-          state.actionHighlight.lineIndex === i;
-
-        lineEl.className = `line ${isHighlighted ? state.actionHighlight.type : ""}`;
-
-        const resultClass = lineResult(i, owner);
-
-        const head = document.createElement("div");
-        head.className = "line-head";
-        head.innerHTML = `
-          <strong>${i + 1}라인</strong>
-          <span class="score ${resultClass}">${lineScore(line)}</span>
-        `;
-
-        const slots = document.createElement("div");
-        slots.className = "slots";
-
-        for (let j = 0; j < 3; j++) {
-          const slot = document.createElement("div");
-          slot.className = "slot";
-
-          if (line[j]) {
-            const die = document.createElement("div");
-            die.className = `die ${line[j].isShield ? "shield" : ""}`;
-            die.textContent = line[j].value;
-            slot.appendChild(die);
-          } else {
-            slot.textContent = "·";
-          }
-
-          slots.appendChild(slot);
-        }
-
-        const btn = document.createElement("button");
-        btn.className = "place-btn";
-        if (state.isOpeningShieldPlacement && owner === OWNERS.PLAYER) {
-          btn.classList.add("btn-blue");
-          btn.textContent = `내 ${i + 1}라인에 선공 실드`;
-        } else if (state.isBonusAction && owner === OWNERS.AI) {
-          btn.classList.add("bonus-target", "btn-blue");
-          btn.textContent = `상대 ${i + 1}라인에 실드`;
-        } else if (state.isBonusAction && owner === OWNERS.PLAYER) {
-          btn.classList.add("btn-blue");
-          btn.textContent = `내 ${i + 1}라인에 실드`;
-        } else {
-          btn.textContent = `${i + 1}라인 배치`;
-        }
-
-        const isPlayerControl = state.currentTurn === OWNERS.PLAYER && !state.turnLocked && !state.gameOver;
-        const canClick =
-          isPlayerControl &&
-          canPlace(owner, i) &&
-          (
-            (state.isOpeningShieldPlacement && owner === OWNERS.PLAYER) ||
-            (state.isBonusAction && (owner === OWNERS.PLAYER || owner === OWNERS.AI)) ||
-            (!state.isBonusAction && !state.isOpeningShieldPlacement && owner === OWNERS.PLAYER)
-          );
-
-        btn.disabled = !canClick;
-        btn.addEventListener("click", () => placeDice(owner, i));
-
-        lineEl.appendChild(head);
-        lineEl.appendChild(slots);
-        lineEl.appendChild(btn);
-        container.appendChild(lineEl);
-      }
-    }
-
-    function render() {
-      els.turnText.textContent = state.gameOver
-        ? "게임 종료"
-        : state.currentTurn === OWNERS.PLAYER
-          ? "플레이어"
-          : "AI";
-
-      if (state.currentDice) {
-        els.currentDice.textContent = state.currentDice.value;
-        els.currentDice.className = `current-dice ${state.currentDice.isShield ? "shield" : ""}`;
-        els.diceInfo.textContent = state.currentDice.isShield ? "실드 주사위" : "일반 주사위";
-
-        els.midCurrentDice.textContent = state.currentDice.value;
-        els.midCurrentDice.className = `mid-current-dice ${state.currentDice.isShield ? "shield" : ""}`;
-        els.midDiceInfo.textContent = state.currentDice.isShield ? "실드" : "일반";
-      } else {
-        els.currentDice.textContent = "-";
-        els.currentDice.className = "current-dice";
-        els.diceInfo.textContent = "주사위 없음";
-
-        els.midCurrentDice.textContent = "-";
-        els.midCurrentDice.className = "mid-current-dice";
-        els.midDiceInfo.textContent = "없음";
-      }
-
-      els.midTurnText.textContent = state.gameOver
-        ? "게임 종료"
-        : state.currentTurn === OWNERS.PLAYER
-          ? "플레이어"
-          : "AI";
-
-      els.rerollCountText.textContent = state.rerollCounts.Player;
-      els.rerollBtn.disabled =
-        state.gameOver ||
-        state.turnLocked ||
-        state.currentTurn !== OWNERS.PLAYER ||
-        state.isBonusAction ||
-        state.rerollCounts.Player <= 0;
-
-      els.holdBtn.disabled =
-        state.gameOver ||
-        state.turnLocked ||
-        state.currentTurn !== OWNERS.PLAYER ||
-        state.isOpeningShieldPlacement;
-
-      els.playerCount.textContent = `${totalDice(OWNERS.PLAYER)} / 9`;
-      els.aiCount.textContent = `${totalDice(OWNERS.AI)} / 9`;
-
-      renderLines(OWNERS.AI, els.aiLines);
-      renderLines(OWNERS.PLAYER, els.playerLines);
+      const preferredNext = opposite(state.currentTurn);
+      const actualNext = isBoardFull(preferredNext) ? state.currentTurn : preferredNext;
+      startTurn(actualNext);
     }
 
     function resetGame(options = {}) {
@@ -1776,33 +873,449 @@
 
       if (shouldRecordForfeit) {
         recordForfeitLoss();
-        setMessage("새 게임을 시작하여 현재 판은 플레이어 패배로 기록되었습니다.");
       }
 
       state.boards = {
-        Player: [[], [], []],
+        PLAYER: [[], [], []],
         AI: [[], [], []]
       };
+
       state.firstPlayer = Math.random() < 0.5 ? OWNERS.PLAYER : OWNERS.AI;
       state.currentTurn = state.firstPlayer;
-      state.currentDice = null;
+      state.currentDice = rollDice(true);
+      state.isOpeningShieldPlacement = true;
       state.isBonusAction = false;
       state.rerollCounts = {
-        Player: 1,
+        PLAYER: 1,
         AI: 1
       };
       state.gameOver = false;
-      state.turnLocked = false;
-      state.isOpeningShieldPlacement = false;
-      state.actionHighlight = null;
-      startTurn(state.firstPlayer);
+      state.aiThinking = false;
+
+      setMessage(`${ownerName(state.firstPlayer)} 선공입니다. 선공 첫 주사위는 실드 ${state.currentDice.value}입니다. 자기 진영에만 배치하세요.`);
+      render();
+
+      if (state.currentTurn === OWNERS.AI) scheduleAI();
+    }
+
+    function reroll() {
+      if (state.gameOver || state.currentTurn !== OWNERS.PLAYER || state.aiThinking) return;
+
+      if (state.isBonusAction) {
+        setMessage("알까기 보너스 실드 배치 단계에서는 타짜를 사용할 수 없습니다.");
+        return;
+      }
+
+      const owner = state.currentTurn;
+      if (state.rerollCounts[owner] <= 0) {
+        setMessage("플레이어의 타짜 사용 횟수가 남아 있지 않습니다.");
+        return;
+      }
+
+      const oldValue = state.currentDice.value;
+      const keepShield = state.currentDice.isShield;
+      state.rerollCounts[owner] -= 1;
+      state.currentDice = rollDifferentDice(oldValue, keepShield);
+
+      const shieldText = keepShield ? " 선공 실드 주사위이므로 리롤 후에도 실드 속성이 유지됩니다." : "";
+      setMessage(`플레이어 타짜 발동! ${oldValue}을(를) 제외하고 다시 굴려 ${state.currentDice.value}이(가) 나왔습니다.${shieldText}`);
+      render();
+    }
+
+    function placeDice(targetOwner, lineIndex) {
+      if (state.gameOver || state.currentTurn !== OWNERS.PLAYER || state.aiThinking) return;
+
+      const owner = OWNERS.PLAYER;
+
+      if (!canPlace(targetOwner, lineIndex)) {
+        setMessage("해당 라인은 이미 가득 찼습니다.");
+        return;
+      }
+
+      if (state.isOpeningShieldPlacement) {
+        if (targetOwner !== owner) {
+          setMessage("선공 첫 실드 주사위는 자기 진영에만 배치할 수 있습니다.");
+          return;
+        }
+
+        state.boards[owner][lineIndex].push({ ...state.currentDice });
+        setMessage(`플레이어가 선공 실드 주사위를 자기 ${lineIndex + 1}라인에 배치했습니다.`);
+        state.currentDice = null;
+        endTurn();
+        return;
+      }
+
+      if (state.isBonusAction) {
+        state.boards[targetOwner][lineIndex].push({ ...state.currentDice });
+        const targetText = targetOwner === owner ? "자기" : "상대";
+        setMessage(`플레이어가 실드 주사위를 ${targetText} ${lineIndex + 1}라인에 배치했습니다. 실드 주사위는 알까기 대상이 되지 않습니다.`);
+        state.currentDice = null;
+        state.isBonusAction = false;
+        endTurn();
+        return;
+      }
+
+      if (targetOwner !== owner) {
+        setMessage("일반 주사위는 자기 진영에만 배치할 수 있습니다.");
+        return;
+      }
+
+      const enemy = OWNERS.AI;
+      const enemyLine = state.boards[enemy][lineIndex];
+      const diceValue = state.currentDice.value;
+      const before = enemyLine.length;
+
+      state.boards[enemy][lineIndex] = enemyLine.filter(die => die.isShield || die.value !== diceValue);
+      const removed = before - state.boards[enemy][lineIndex].length;
+
+      if (removed > 0) {
+        state.currentDice = rollDice(true);
+        state.isBonusAction = true;
+        setMessage(`플레이어 알까기 성공! AI ${lineIndex + 1}라인의 ${diceValue} 주사위 ${removed}개를 제거했습니다. 보너스 실드 ${state.currentDice.value}을(를) 원하는 빈칸에 배치하세요.`);
+        render();
+        return;
+      }
+
+      state.boards[owner][lineIndex].push({ ...state.currentDice });
+      setMessage(`플레이어가 자기 ${lineIndex + 1}라인에 ${diceValue} 주사위를 배치했습니다.`);
+      state.currentDice = null;
+      endTurn();
+    }
+
+    function emptyLines(owner) {
+      return [0, 1, 2].filter(i => canPlace(owner, i));
+    }
+
+    function wouldPop(owner, lineIndex, value) {
+      const enemy = opposite(owner);
+      return state.boards[enemy][lineIndex].some(die => !die.isShield && die.value === value);
+    }
+
+    function countPop(owner, lineIndex, value) {
+      const enemy = opposite(owner);
+      return state.boards[enemy][lineIndex].filter(die => !die.isShield && die.value === value).length;
+    }
+
+    function potentialLineScore(owner, lineIndex, die) {
+      const copy = state.boards[owner][lineIndex].concat([die]);
+      return lineScore(copy);
+    }
+
+    function chooseBestOwnLine(owner, die) {
+      const candidates = emptyLines(owner);
+      let best = candidates[0] ?? 0;
+      let bestScore = -Infinity;
+
+      candidates.forEach(i => {
+        let score = potentialLineScore(owner, i, die);
+
+        const sameCount = state.boards[owner][i].filter(d => d.value === die.value).length;
+        score += sameCount * 8;
+
+        if (wouldPop(owner, i, die.value) && !die.isShield) {
+          score += 18 + countPop(owner, i, die.value) * 8;
+        }
+
+        const enemyScore = lineScore(state.boards[opposite(owner)][i]);
+        const myScore = lineScore(state.boards[owner][i]);
+        if (myScore <= enemyScore && score > enemyScore) score += 6;
+
+        if (score > bestScore) {
+          bestScore = score;
+          best = i;
+        }
+      });
+
+      return best;
+    }
+
+    function chooseShieldLineForAI() {
+      const shield = state.currentDice;
+      const ownCandidates = emptyLines(OWNERS.AI).map(i => ({
+        owner: OWNERS.AI,
+        lineIndex: i,
+        score: potentialLineScore(OWNERS.AI, i, shield) + 4
+      }));
+
+      const playerCandidates = emptyLines(OWNERS.PLAYER).map(i => {
+        const playerLine = state.boards.PLAYER[i];
+        const sameCount = playerLine.filter(d => d.value === shield.value).length;
+        const playerScore = lineScore(playerLine);
+        const aiScore = lineScore(state.boards.AI[i]);
+
+        return {
+          owner: OWNERS.PLAYER,
+          lineIndex: i,
+          score: 3 + (shield.value <= 3 ? 8 : 0) + sameCount * 5 + (playerScore > aiScore ? 5 : 0)
+        };
+      });
+
+      const all = ownCandidates.concat(playerCandidates);
+      all.sort((a, b) => b.score - a.score);
+      return all[0] || { owner: OWNERS.AI, lineIndex: 0 };
+    }
+
+    function shouldAIReroll() {
+      if (state.rerollCounts.AI <= 0 || state.isBonusAction) return false;
+
+      const value = state.currentDice.value;
+      const bestLine = chooseBestOwnLine(OWNERS.AI, state.currentDice);
+      const hasPop = wouldPop(OWNERS.AI, bestLine, value);
+
+      if (state.isOpeningShieldPlacement) {
+        return value <= 2;
+      }
+
+      if (hasPop) return false;
+      if (value <= 2) return true;
+
+      const sameCount = state.boards.AI[bestLine].filter(d => d.value === value).length;
+      return value <= 3 && sameCount === 0;
+    }
+
+    function aiRerollIfNeeded(next) {
+      if (!shouldAIReroll()) {
+        next();
+        return;
+      }
+
+      const oldValue = state.currentDice.value;
+      const keepShield = state.currentDice.isShield;
+      state.rerollCounts.AI -= 1;
+      state.currentDice = rollDifferentDice(oldValue, keepShield);
+
+      const shieldText = keepShield ? " 선공 실드 주사위라 실드 속성은 유지됩니다." : "";
+      setMessage(`AI가 타짜를 사용했습니다. ${oldValue}을(를) 제외하고 다시 굴려 ${state.currentDice.value}이(가) 나왔습니다.${shieldText}`);
+      render();
+
+      setTimeout(next, AI_DELAY);
+    }
+
+    function aiPlace(targetOwner, lineIndex) {
+      if (!canPlace(targetOwner, lineIndex)) {
+        const fallbackOwner = canPlace(OWNERS.AI, 0) ? OWNERS.AI : targetOwner;
+        const fallback = emptyLines(fallbackOwner)[0] ?? 0;
+        targetOwner = fallbackOwner;
+        lineIndex = fallback;
+      }
+
+      if (state.isOpeningShieldPlacement) {
+        state.boards.AI[lineIndex].push({ ...state.currentDice });
+        setMessage(`AI가 선공 실드 주사위를 자기 ${lineIndex + 1}라인에 배치했습니다.`);
+        state.currentDice = null;
+        endTurn();
+        return;
+      }
+
+      if (state.isBonusAction) {
+        state.boards[targetOwner][lineIndex].push({ ...state.currentDice });
+        const targetText = targetOwner === OWNERS.AI ? "자기" : "플레이어";
+        setMessage(`AI가 보너스 실드 주사위를 ${targetText} ${lineIndex + 1}라인에 배치했습니다.`);
+        state.currentDice = null;
+        state.isBonusAction = false;
+        endTurn();
+        return;
+      }
+
+      const diceValue = state.currentDice.value;
+      const enemyLine = state.boards.PLAYER[lineIndex];
+      const before = enemyLine.length;
+
+      state.boards.PLAYER[lineIndex] = enemyLine.filter(die => die.isShield || die.value !== diceValue);
+      const removed = before - state.boards.PLAYER[lineIndex].length;
+
+      if (removed > 0) {
+        state.currentDice = rollDice(true);
+        state.isBonusAction = true;
+        setMessage(`AI 알까기 성공! 플레이어 ${lineIndex + 1}라인의 ${diceValue} 주사위 ${removed}개를 제거했습니다. AI가 보너스 실드 배치를 고민합니다.`);
+        render();
+        setTimeout(() => {
+          if (state.gameOver || state.currentTurn !== OWNERS.AI || !state.isBonusAction) return;
+          const target = chooseShieldLineForAI();
+          aiPlace(target.owner, target.lineIndex);
+        }, AI_DELAY);
+        return;
+      }
+
+      state.boards.AI[lineIndex].push({ ...state.currentDice });
+      setMessage(`AI가 자기 ${lineIndex + 1}라인에 ${diceValue} 주사위를 배치했습니다.`);
+      state.currentDice = null;
+      endTurn();
+    }
+
+    function scheduleAI() {
+      if (state.gameOver || state.currentTurn !== OWNERS.AI) return;
+
+      state.aiThinking = true;
+      render();
+
+      setTimeout(() => {
+        if (state.gameOver || state.currentTurn !== OWNERS.AI) return;
+
+        aiRerollIfNeeded(() => {
+          if (state.gameOver || state.currentTurn !== OWNERS.AI) return;
+
+          state.aiThinking = false;
+
+          if (state.isOpeningShieldPlacement) {
+            const lineIndex = chooseBestOwnLine(OWNERS.AI, state.currentDice);
+            aiPlace(OWNERS.AI, lineIndex);
+            return;
+          }
+
+          if (state.isBonusAction) {
+            const target = chooseShieldLineForAI();
+            aiPlace(target.owner, target.lineIndex);
+            return;
+          }
+
+          const lineIndex = chooseBestOwnLine(OWNERS.AI, state.currentDice);
+          aiPlace(OWNERS.AI, lineIndex);
+        });
+      }, AI_DELAY);
+    }
+
+    function lineResult(owner, index) {
+      const other = opposite(owner);
+      const my = lineScore(state.boards[owner][index]);
+      const enemy = lineScore(state.boards[other][index]);
+      if (my > enemy) return "win";
+      if (my < enemy) return "lose";
+      return "";
+    }
+
+    function renderLine(owner, index) {
+      const line = state.boards[owner][index];
+      const lineEl = document.createElement("div");
+      lineEl.className = "line";
+
+      const head = document.createElement("div");
+      head.className = "line-head";
+      const score = lineScore(line);
+      head.innerHTML = `<strong>${index + 1}라인</strong><span class="score ${lineResult(owner, index)}">${score}</span>`;
+
+      const slots = document.createElement("div");
+      slots.className = "slots";
+
+      for (let i = 0; i < 3; i++) {
+        const slot = document.createElement("div");
+        slot.className = "slot";
+
+        if (line[i]) {
+          const die = document.createElement("div");
+          die.className = `die ${line[i].isShield ? "shield" : ""}`;
+          die.textContent = line[i].value;
+          slot.appendChild(die);
+        } else {
+          slot.textContent = "·";
+        }
+
+        slots.appendChild(slot);
+      }
+
+      const btn = document.createElement("button");
+      btn.className = "place-btn";
+
+      const isPlayerTurn = state.currentTurn === OWNERS.PLAYER && !state.gameOver && !state.aiThinking;
+      const hasSpace = line.length < 3;
+      let canClick = false;
+
+      if (state.gameOver) {
+        btn.textContent = "종료";
+      } else if (state.currentTurn === OWNERS.AI) {
+        btn.textContent = "AI 턴";
+      } else if (state.isOpeningShieldPlacement) {
+        canClick = isPlayerTurn && owner === OWNERS.PLAYER && hasSpace;
+        btn.textContent = owner === OWNERS.PLAYER ? "선공 실드" : "상대 라인";
+      } else if (state.isBonusAction) {
+        canClick = isPlayerTurn && hasSpace;
+        btn.textContent = owner === OWNERS.PLAYER ? "자기 실드" : "상대 실드";
+      } else {
+        canClick = isPlayerTurn && owner === OWNERS.PLAYER && hasSpace;
+        btn.textContent = owner === OWNERS.PLAYER ? "배치" : "상대 라인";
+      }
+
+      btn.disabled = !canClick;
+      btn.addEventListener("click", () => placeDice(owner, index));
+
+      lineEl.appendChild(head);
+      lineEl.appendChild(slots);
+      lineEl.appendChild(btn);
+      return lineEl;
+    }
+
+    function render() {
+      const turnText = state.gameOver
+        ? "게임 종료"
+        : state.aiThinking
+          ? "AI 생각 중"
+          : ownerName(state.currentTurn);
+
+      els.turnText.textContent = turnText;
+      els.midTurnText.textContent = turnText;
+      els.firstText.textContent = ownerName(state.firstPlayer);
+
+      const playerTotal = totalDice(OWNERS.PLAYER);
+      const aiTotal = totalDice(OWNERS.AI);
+
+      els.playerCount.textContent = `${playerTotal} / 9`;
+      els.aiCount.textContent = `${aiTotal} / 9`;
+      els.playerMiniCount.textContent = `${playerTotal} / 9`;
+      els.aiMiniCount.textContent = `${aiTotal} / 9`;
+
+      els.playerSide.classList.toggle("active", state.currentTurn === OWNERS.PLAYER && !state.gameOver);
+      els.aiSide.classList.toggle("active", state.currentTurn === OWNERS.AI && !state.gameOver);
+
+      if (state.currentDice) {
+        els.currentDice.textContent = state.currentDice.value;
+        els.currentDice.className = `current-dice ${state.currentDice.isShield ? "shield" : ""}`;
+        els.diceInfo.textContent = state.currentDice.isShield ? "실드" : "일반";
+      } else {
+        els.currentDice.textContent = "-";
+        els.currentDice.className = "current-dice";
+        els.diceInfo.textContent = "없음";
+      }
+
+      els.rerollCount.textContent = state.rerollCounts.PLAYER;
+      els.rerollBtn.disabled = state.gameOver || state.currentTurn !== OWNERS.PLAYER || state.aiThinking || state.isBonusAction || state.rerollCounts.PLAYER <= 0;
+
+      els.aiLines.innerHTML = "";
+      els.playerLines.innerHTML = "";
+
+      for (let i = 0; i < 3; i++) {
+        els.aiLines.appendChild(renderLine(OWNERS.AI, i));
+        els.playerLines.appendChild(renderLine(OWNERS.PLAYER, i));
+      }
+    }
+
+
+    function requestNewGame() {
+      const shouldAsk =
+        !state.gameOver &&
+        hasGameStarted();
+
+      if (shouldAsk) {
+        const confirmed = window.confirm("게임을 다시 시작하시겠습니까?");
+        if (!confirmed) {
+          setMessage("새 게임 시작을 취소했습니다.");
+          return;
+        }
+      }
+
+      resetGame({ recordForfeit: shouldAsk });
+    }
+
+    function toggleRules() {
+      const willOpen = els.rulesPanel.hidden;
+      els.rulesPanel.hidden = !willOpen;
+      els.rulesBtn.textContent = willOpen ? "설명 닫기" : "게임 설명";
+      els.rulesBtn.setAttribute("aria-expanded", String(willOpen));
     }
 
     els.rerollBtn.addEventListener("click", reroll);
-    els.holdBtn.addEventListener("click", hold);
-    els.newGameBtn.addEventListener("click", () => resetGame({ recordForfeit: true }));
-    els.clearHistoryBtn.addEventListener("click", clearMatchHistory);
+    els.newGameBtn.addEventListener("click", requestNewGame);
     els.rulesBtn.addEventListener("click", toggleRules);
+    els.clearHistoryBtn.addEventListener("click", clearMatchHistory);
 
     renderHistory();
     resetGame();
