@@ -1001,80 +1001,120 @@
       return lineScore(copy);
     }
 
-    function chooseBestOwnLine(owner, die) {
-      const candidates = emptyLines(owner);
-      let best = candidates[0] ?? 0;
-      let bestScore = -Infinity;
+    function bestOpeningShieldLineForAI() {
+      const candidates = emptyLines(OWNERS.AI);
+      if (candidates.length === 0) return 0;
 
-      candidates.forEach(i => {
-        let score = potentialLineScore(owner, i, die);
+      // 예전 AI 버전과 동일하게 선공 실드는 가운데 라인을 우선합니다.
+      if (candidates.includes(1)) return 1;
+      return candidates[0];
+    }
 
-        const sameCount = state.boards[owner][i].filter(d => d.value === die.value).length;
-        score += sameCount * 8;
+    function bestNormalLineForAI() {
+      const dice = state.currentDice.value;
+      const candidates = [];
 
-        if (wouldPop(owner, i, die.value) && !die.isShield) {
-          score += 18 + countPop(owner, i, die.value) * 8;
-        }
+      for (let i = 0; i < 3; i++) {
+        if (!canPlace(OWNERS.AI, i)) continue;
 
-        const enemyScore = lineScore(state.boards[opposite(owner)][i]);
-        const myScore = lineScore(state.boards[owner][i]);
-        if (myScore <= enemyScore && score > enemyScore) score += 6;
+        const playerLine = state.boards.PLAYER[i];
+        const removable = playerLine.filter(d => !d.isShield && d.value === dice).length;
 
-        if (score > bestScore) {
-          bestScore = score;
-          best = i;
-        }
-      });
+        const simulatedOwn = [...state.boards.AI[i], state.currentDice];
+        const scoreGain = lineScore(simulatedOwn) - lineScore(state.boards.AI[i]);
 
-      return best;
+        const playerScore = lineScore(state.boards.PLAYER[i]);
+        const aiScore = lineScore(state.boards.AI[i]);
+        const closeLineBonus = playerScore >= aiScore ? 2 : 0;
+
+        // 예전 AI 버전과 동일한 핵심:
+        // 알까기 가능성을 최우선으로 보고, 그 다음 점수 증가와 라인 상황을 봅니다.
+        candidates.push({
+          index: i,
+          value: removable * 100 + scoreGain * 5 + closeLineBonus - state.boards.AI[i].length,
+          removable
+        });
+      }
+
+      candidates.sort((a, b) => b.value - a.value);
+      return candidates[0]?.index ?? emptyLines(OWNERS.AI)[0] ?? 0;
     }
 
     function chooseShieldLineForAI() {
-      const shield = state.currentDice;
-      const ownCandidates = emptyLines(OWNERS.AI).map(i => ({
-        owner: OWNERS.AI,
-        lineIndex: i,
-        score: potentialLineScore(OWNERS.AI, i, shield) + 4
-      }));
+      const choices = [];
 
-      const playerCandidates = emptyLines(OWNERS.PLAYER).map(i => {
-        const playerLine = state.boards.PLAYER[i];
-        const sameCount = playerLine.filter(d => d.value === shield.value).length;
-        const playerScore = lineScore(playerLine);
-        const aiScore = lineScore(state.boards.AI[i]);
+      for (const owner of [OWNERS.AI, OWNERS.PLAYER]) {
+        for (let i = 0; i < 3; i++) {
+          if (!canPlace(owner, i)) continue;
 
-        return {
-          owner: OWNERS.PLAYER,
-          lineIndex: i,
-          score: 3 + (shield.value <= 3 ? 8 : 0) + sameCount * 5 + (playerScore > aiScore ? 5 : 0)
-        };
-      });
+          const beforeAI = lineScore(state.boards.AI[i]);
+          const beforePlayer = lineScore(state.boards.PLAYER[i]);
 
-      const all = ownCandidates.concat(playerCandidates);
-      all.sort((a, b) => b.score - a.score);
-      return all[0] || { owner: OWNERS.AI, lineIndex: 0 };
-    }
+          const simulated = [...state.boards[owner][i], state.currentDice];
+          const afterTarget = lineScore(simulated);
 
-    function shouldAIReroll() {
-      if (state.rerollCounts.AI <= 0 || state.isBonusAction) return false;
+          let value = 0;
 
-      const value = state.currentDice.value;
-      const bestLine = chooseBestOwnLine(OWNERS.AI, state.currentDice);
-      const hasPop = wouldPop(OWNERS.AI, bestLine, value);
+          if (owner === OWNERS.AI) {
+            value = (afterTarget - beforeAI) * 4;
+          } else {
+            const shieldValue = state.currentDice.value;
+            const playerLineLength = state.boards.PLAYER[i].length;
+            const playerLineScore = beforePlayer;
+            const playerDuplicateCount = state.boards.PLAYER[i].filter(die => die.value === shieldValue).length;
 
-      if (state.isOpeningShieldPlacement) {
-        return value <= 2;
+            // 상대 라인에 실드를 두면 상대 점수를 올릴 수 있으므로 기본적으로 보수적으로 평가합니다.
+            value = beforePlayer - afterTarget;
+
+            // 단, 낮은 숫자 실드(1~3)는 상대의 빈칸을 막는 방해 수로 활용합니다.
+            if (shieldValue <= 3) {
+              value += 10;
+              if (playerLineLength === 2) value += 18;
+              if (playerLineScore >= lineScore(state.boards.AI[i])) value += 8;
+            }
+
+            // 상대에게 같은 숫자 시너지를 만들어 주는 배치는 강하게 피합니다.
+            if (playerDuplicateCount > 0) {
+              value -= 22 * playerDuplicateCount;
+            }
+          }
+
+          value -= state.boards[owner][i].length;
+          choices.push({ owner, lineIndex: i, value });
+        }
       }
 
-      if (hasPop) return false;
-      if (value <= 2) return true;
-
-      const sameCount = state.boards.AI[bestLine].filter(d => d.value === value).length;
-      return value <= 3 && sameCount === 0;
+      choices.sort((a, b) => b.value - a.value);
+      return choices[0] || { owner: OWNERS.AI, lineIndex: emptyLines(OWNERS.AI)[0] ?? 0 };
     }
 
-    function aiRerollIfNeeded(next) {
-      if (!shouldAIReroll()) {
+    function shouldAIReroll(targetLine) {
+      if (state.rerollCounts.AI <= 0) return false;
+      if (state.isBonusAction) return false;
+
+      const dice = state.currentDice.value;
+      const canHit = state.boards.PLAYER.some(line =>
+        line.some(die => !die.isShield && die.value === dice)
+      );
+
+      const aiHasSameNumber = state.boards.AI.some(line =>
+        line.some(die => die.value === dice)
+      );
+
+      const currentGain =
+        lineScore([...state.boards.AI[targetLine], state.currentDice]) -
+        lineScore(state.boards.AI[targetLine]);
+
+      // 예전 AI 버전과 동일:
+      // 알까기 가능, 같은 숫자 시너지, 충분한 점수 이득이 있으면 타짜를 아낍니다.
+      if (canHit || aiHasSameNumber || currentGain >= 5) return false;
+
+      // 낮은 숫자이면서 특별한 이득이 없을 때만 타짜를 사용합니다.
+      return dice <= 3;
+    }
+
+    function aiRerollIfNeeded(targetLine, next) {
+      if (!shouldAIReroll(targetLine)) {
         next();
         return;
       }
@@ -1152,14 +1192,18 @@
       setTimeout(() => {
         if (state.gameOver || state.currentTurn !== OWNERS.AI) return;
 
-        aiRerollIfNeeded(() => {
+        let targetLine = state.isOpeningShieldPlacement
+          ? bestOpeningShieldLineForAI()
+          : bestNormalLineForAI();
+
+        aiRerollIfNeeded(targetLine, () => {
           if (state.gameOver || state.currentTurn !== OWNERS.AI) return;
 
           state.aiThinking = false;
 
           if (state.isOpeningShieldPlacement) {
-            const lineIndex = chooseBestOwnLine(OWNERS.AI, state.currentDice);
-            aiPlace(OWNERS.AI, lineIndex);
+            targetLine = bestOpeningShieldLineForAI();
+            aiPlace(OWNERS.AI, targetLine);
             return;
           }
 
@@ -1169,8 +1213,8 @@
             return;
           }
 
-          const lineIndex = chooseBestOwnLine(OWNERS.AI, state.currentDice);
-          aiPlace(OWNERS.AI, lineIndex);
+          targetLine = bestNormalLineForAI();
+          aiPlace(OWNERS.AI, targetLine);
         });
       }, AI_DELAY);
     }
